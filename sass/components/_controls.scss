@@ -1,0 +1,78 @@
+.controls-panel {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    height: 50px;
+    align-items: center;
+    @include media-tablet-small {
+        height: 100px;
+        flex-direction: column;
+        justify-content: space-around;
+    }
+    .settings-panel {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px;
+    }
+}
+
+.btn {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: $color-light-grey;
+    cursor: pointer;
+    @media (hover: hover) {
+        &:hover {
+            background-color:$color-hover;
+        }
+    }
+}
+
+.refresh-background {
+    background-image: url(/assets/controls--btn.png);
+    background-size: cover;
+}
+
+.languages {
+    margin-left: 20px;
+    height: 30px;
+    background-color: $color-light-grey;
+    color: $color-light;
+    cursor: pointer;
+    @media (hover: hover) {
+        &:hover {
+            background-color:$color-hover;
+        }
+    }
+}
+
+.radio-buttons.units {
+    margin-left: 20px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+}
+
+input.radio-buttons_button {
+    opacity: 0;
+    width: 0;
+    margin: 0;
+}
+
+.radio-buttons_unit-text {
+    padding: 5px;
+    cursor: pointer;
+    @media (hover: hover) {
+        &:hover {
+            background-color:$color-hover;
+        }
+    }
+}
+
+input.radio-buttons_button:checked + span {
+    background-color:$color-hover;
+}

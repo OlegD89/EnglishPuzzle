@@ -1,0 +1,27 @@
+@mixin media-desktop-medium {
+    @media (max-width: $desktop-width-medium) { @content; }
+}
+
+@mixin media-desktop-small {
+    @media (max-width: $desktop-width-small) { @content; }
+}
+
+@mixin media-tablet-max {
+    @media (max-width: $tablet-width-max) { @content; }
+}
+
+@mixin media-tablet-medium {
+    @media (max-width: $tablet-width-medium) { @content; }
+}
+
+@mixin media-tablet-small {
+    @media (max-width: $tablet-width-small) { @content; }
+}
+
+@mixin media-mobile-max {
+    @media (max-width: $mobile-width-max) { @content; }
+}
+
+@mixin media-mobile-medium {
+    @media (max-width: $mobile-width-medium) { @content; }
+}

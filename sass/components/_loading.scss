@@ -1,0 +1,15 @@
+.loading {
+    background-image: url(/assets/globe.gif);
+    background-size: cover;
+    width: 300px;
+    height: 300px;
+    position: fixed;
+    left: calc(50% - 150px);
+    top: calc(50% - 150px);
+    transition: opacity 0.5s;
+    z-index: 2;
+}
+
+.loading_hide {
+    opacity: 0;
+}

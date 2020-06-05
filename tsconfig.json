@@ -1,0 +1,20 @@
+{
+    "compileOnSave": true,
+    "compilerOptions": {
+        "types" : [ "jest" ],
+        "typeRoots": ["./src/types", "node_modules/@types"],
+        "target": "es6",
+        "noImplicitAny": false,
+        "module": "es6",
+        "removeComments": true,
+        "outDir": "./dist/",
+        "noEmitOnError": true,
+        "sourceMap": true,
+        "watch": true,
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true,
+    },
+    "exclude":[
+        "node_modules"
+    ],
+}

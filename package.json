@@ -1,0 +1,43 @@
+{
+  "name": "fancyweather",
+  "version": "1.0.0",
+  "description": "weather",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "eslint": "npx eslint src/*.ts",
+    "style": "sass --watch sass/style.scss style.css",
+    "dev": "webpack --mode development",
+    "prod": "webpack --mode production"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OlegD89/FancyWeather.git"
+  },
+  "author": "Oleg",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/OlegD89/FancyWeather/issues"
+  },
+  "homepage": "https://github.com/OlegD89/FancyWeather#readme",
+  "dependencies": {
+    "@types/mocha": "^7.0.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^25.2.3",
+    "@typescript-eslint/eslint-plugin": "^3.1.0",
+    "@typescript-eslint/parser": "^3.1.0",
+    "eslint": "^7.1.0",
+    "eslint-config-airbnb-typescript": "^7.2.1",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-react": "^7.19.0",
+    "eslint-plugin-react-hooks": "^2.5.0",
+    "jest": "^26.0.1",
+    "ts-jest": "^26.1.0",
+    "ts-loader": "^5.4.5",
+    "typescript": "^3.9.3",
+    "webpack": "^4.29.0",
+    "webpack-cli": "^3.2.1"
+  }
+}
