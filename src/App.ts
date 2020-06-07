@@ -1,9 +1,10 @@
 import LayoutController from './Components/Layout';
-import StartController from './Components/Start';
+import StartController from './Components/Start/Start';
 import Settings from './Components/Settings';
 import DataAdapter from './Utils/DataAdapter';
 import { EventDispatcher } from './Components/EventDispatcher';
 import LoggerController from './Components/Logger';
+import GameController from './Components/Game/Game';
 
 export default class App {
   private layout: LayoutController;
@@ -11,6 +12,7 @@ export default class App {
   private settings: Settings;
   private dataAdapter: DataAdapter;
   private logger: LoggerController;
+  private game: GameController;
 
   constructor() {
     const eventDispatcher = new EventDispatcher();
@@ -19,6 +21,7 @@ export default class App {
     this.logger = new LoggerController(eventDispatcher.subscribe);
     this.layout = new LayoutController(eventDispatcher.subscribe);
     this.start = new StartController(eventDispatcher);
+    this.game = new GameController(eventDispatcher);
   }
 
   public Start() {
@@ -27,8 +30,8 @@ export default class App {
     const page = document.createDocumentFragment();
     const layout = this.layout.render(page);
     this.logger.render(page);
-    const start = this.start.render(layout);
-    // this.controls.render(layout, params);
+    this.start.render(layout);
+    this.game.render(layout);
 
     document.querySelector('body').appendChild(page);
   }

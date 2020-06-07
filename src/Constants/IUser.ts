@@ -1,6 +1,11 @@
 interface IUser {
-  email: string;
-  userId: string;
+  message: string;
+  token: string;
+  userId: IUserId;
+}
+
+interface IUserId {
+  id: string;
 }
 
 

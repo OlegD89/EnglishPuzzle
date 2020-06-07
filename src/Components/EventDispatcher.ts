@@ -1,7 +1,7 @@
 /* eslint-disable max-classes-per-file */
 // TODO search оставил в качестве примера
 
-import IUser from '../Constants/User';
+import IUser from '../Constants/IUser';
 
 
 interface ILoggerEvent {
@@ -13,6 +13,7 @@ interface IEventDispatchers {
   start: EventDispatcherBase<void>;
   setUser: EventDispatcherBase<IUser>;
   logger: EventDispatcherBase<ILoggerEvent>;
+  clickSound: EventDispatcherBase<void>;
 }
 
 class EventDispatcher {
@@ -26,6 +27,7 @@ class EventDispatcher {
       start: new EventDispatcherBase<void>(),
       setUser: new EventDispatcherBase<IUser>(),
       logger: new EventDispatcherBase<ILoggerEvent>(),
+      clickSound: new EventDispatcherBase<void>(),
     };
     this.call = new EventDispatcherCall(this.eventDispatchers);
     this.subscribe = new EventDispatcherSubscribe(this.eventDispatchers);
@@ -50,6 +52,10 @@ class EventDispatcherCall {
   public logger(text: string, isError: boolean = false) {
     this.eventDispatchers.logger.call({ text, isError });
   }
+
+  public clickSound() {
+    this.eventDispatchers.clickSound.call();
+  }
 }
 
 class EventDispatcherSubscribe {
@@ -69,6 +75,10 @@ class EventDispatcherSubscribe {
 
   public logger(handler: Handler<ILoggerEvent>) {
     this.eventDispatchers.logger.subscribe(handler);
+  }
+
+  public clickSound(handler: Handler<void>) {
+    this.eventDispatchers.clickSound.subscribe(handler);
   }
 }
 

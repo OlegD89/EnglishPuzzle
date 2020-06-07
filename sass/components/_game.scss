@@ -1,0 +1,89 @@
+.button-icon {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  background-color: #ffffff;
+  background-size: 25px 25px;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin: 5px;
+  border-radius: 5px;
+  &-speak {
+    background-image: url(assets/speaker-icon.svg);
+  }
+  &-tranlate {
+    background-image: url(assets/docs-icon.svg);
+  }
+  &-background {
+    background-image: url(assets/image-icon.png);
+  }
+  &_active {
+    background-color: #4c40ff;
+  }
+}
+
+.game-layout {
+  width: 100%;
+  max-width: 1030px;
+}
+
+label.droplist-label {
+  margin-right: 15px;
+  .droplist {
+    margin-left: 5px;
+  }
+}
+
+.game__result-layuot {
+  height: 50px;
+  background-color: #ffffff;
+  box-shadow: 7px 6px 13px rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+}
+
+
+.game__resourse-layuot {
+  height: 50px;
+  margin-top: 25px;
+  background-color: #ffffff;
+  box-shadow: 7px 6px 13px rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+}
+
+span.game__word {
+  color: #000000;
+  outline: 5px solid #6466f0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  cursor: pointer;
+  &_true {
+    background-color: #74f064;
+  }
+  &_false {
+    background-color: #f06c64;
+  }
+}
+
+.game__result-buttons {
+  margin-top: 25px;
+  display: flex;
+  justify-content: center;
+}
+
+.game__check {
+  padding: 10px;
+  margin: 0 10px;
+  font-size: 2rem;
+}
+
+.game__result-translate {
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+  margin: 20px 0;
+}

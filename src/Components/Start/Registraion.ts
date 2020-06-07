@@ -1,7 +1,7 @@
-import { renderElement, checkPassword, validateEmail } from '../Utils/Utils';
-import { EventDispatcher, EventDispatcherCall } from './EventDispatcher';
-import DataAdapter from '../Utils/DataAdapter';
-import { IUserRegister } from '../Constants/User';
+import { renderElement, checkPassword, validateEmail } from '../../Utils/Utils';
+import { EventDispatcher, EventDispatcherCall } from '../EventDispatcher';
+import DataAdapter from '../../Utils/DataAdapter';
+import { IUserRegister } from '../../Constants/IUser';
 
 export default class RegistrationController {
   private view: RegistrationView;

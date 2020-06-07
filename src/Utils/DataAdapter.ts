@@ -1,6 +1,7 @@
 import { ISettingsParams } from '../Components/Settings';
 import { EventDispatcherCall, EventDispatcher } from '../Components/EventDispatcher';
-import { IUserRegister } from '../Constants/User';
+import IUser, { IUserRegister } from '../Constants/IUser';
+import IWordResponse from '../Constants/IWord';
 
 export default class DataAdapter {
   private eventDispatcherCall: EventDispatcherCall;
@@ -44,6 +45,35 @@ export default class DataAdapter {
 
     if (rawResponse.ok) {
       const content = await rawResponse.json();
+      return content;
+    }
+    const errorText = await rawResponse.text();
+    throw Error(errorText);
+  }
+
+  public static async getUserWords(user: IUser) {
+debugger;
+    const rawResponse = await fetch(`https://afternoon-falls-25894.herokuapp.com/users/${user.userId.id}/words`, {
+      method: 'GET',
+      withCredentials: true,
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+        Accept: 'application/json',
+      },
+    } as any);
+debugger;
+    if (rawResponse.ok) {
+      const content = await rawResponse.json();
+      return content;
+    }
+    const errorText = await rawResponse.text();
+    throw Error(errorText);
+  }
+
+  public static async getWords(group: number, page: number) {
+    const rawResponse = await fetch(`https://afternoon-falls-25894.herokuapp.com/words?group=${group}&page=${page}`);
+    if (rawResponse.ok) {
+      const content: IWordResponse[] = await rawResponse.json();
       return content;
     }
     const errorText = await rawResponse.text();

@@ -1,7 +1,7 @@
-import { renderElement, checkPassword, validateEmail } from '../Utils/Utils';
-import { EventDispatcher, EventDispatcherCall } from './EventDispatcher';
-import DataAdapter from '../Utils/DataAdapter';
-import { IUserRegister } from '../Constants/User';
+import { renderElement, checkPassword, validateEmail } from '../../Utils/Utils';
+import { EventDispatcher, EventDispatcherCall } from '../EventDispatcher';
+import DataAdapter from '../../Utils/DataAdapter';
+import { IUserRegister } from '../../Constants/IUser';
 import RegistrationController from './Registraion';
 
 export default class LogInController {
@@ -74,6 +74,9 @@ class LogInView {
     logInButton.type = 'submit';
     this.registerButton = renderElement(this.logIn, 'button',
       'log-in__button log-in__registration-button', 'Registration');
+
+    this.logInEmail.value = 'test3@te.st';
+    this.logInPassword.value = 'Test999&';
   }
 
   public onSubmitRegister(func: (email: string, password: string) => void) {

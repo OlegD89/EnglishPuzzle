@@ -1,5 +1,5 @@
-import { renderElement } from '../Utils/Utils';
-import { EventDispatcher } from './EventDispatcher';
+import { renderElement } from '../../Utils/Utils';
+import { EventDispatcher } from '../EventDispatcher';
 import LogInController from './LogIn';
 
 export default class StartController {
@@ -26,7 +26,7 @@ class StartView {
   private button: HTMLButtonElement;
 
   public render(layout: Node) {
-    this.startPage = renderElement(layout, 'div', 'start-page');
+    this.startPage = renderElement(layout, 'div', 'start-page start-page_hide');
     renderElement(this.startPage, 'h1', 'header', 'English puzzle');
     renderElement(this.startPage, 'p', 'start-page__description', 'Click on words, collect phrases');
     renderElement(this.startPage, 'p', 'start-page__description',

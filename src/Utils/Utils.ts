@@ -38,6 +38,15 @@ const randomInteger = function randomInteger(max: number) {
   return Math.floor(random);
 };
 
+const shuffle = function shuffle(arrayInput: any[]) {
+  const array = [...arrayInput];
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+};
+
 export {
-  renderElement, getDistinct, validateURL, randomInteger, checkPassword, validateEmail,
+  renderElement, getDistinct, validateURL, randomInteger, checkPassword, validateEmail, shuffle,
 };
