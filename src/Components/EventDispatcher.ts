@@ -1,12 +1,19 @@
+/* eslint-disable max-classes-per-file */
 // TODO search оставил в качестве примера
-interface ISearchEvent {
-  readonly search: string;
+
+import IUser from '../Constants/User';
+
+
+interface ILoggerEvent {
+  readonly text: string;
+  readonly isError: boolean;
 }
 
 interface IEventDispatchers {
-  search: EventDispatcherBase<ISearchEvent>;
+  start: EventDispatcherBase<void>;
+  setUser: EventDispatcherBase<IUser>;
+  logger: EventDispatcherBase<ILoggerEvent>;
 }
-
 
 class EventDispatcher {
   private eventDispatchers: IEventDispatchers;
@@ -16,7 +23,9 @@ class EventDispatcher {
 
   constructor() {
     this.eventDispatchers = {
-      search: new EventDispatcherBase<ISearchEvent>(),
+      start: new EventDispatcherBase<void>(),
+      setUser: new EventDispatcherBase<IUser>(),
+      logger: new EventDispatcherBase<ILoggerEvent>(),
     };
     this.call = new EventDispatcherCall(this.eventDispatchers);
     this.subscribe = new EventDispatcherSubscribe(this.eventDispatchers);
@@ -30,8 +39,16 @@ class EventDispatcherCall {
     this.eventDispatchers = eventDispatchers;
   }
 
-  public search(event: ISearchEvent) {
-    this.eventDispatchers.search.call(event);
+  public start() {
+    this.eventDispatchers.start.call();
+  }
+
+  public setUser(user: IUser) {
+    this.eventDispatchers.setUser.call(user);
+  }
+
+  public logger(text: string, isError: boolean = false) {
+    this.eventDispatchers.logger.call({ text, isError });
   }
 }
 
@@ -42,8 +59,16 @@ class EventDispatcherSubscribe {
     this.eventDispatchers = eventDispatchers;
   }
 
-  public search(handler: Handler<ISearchEvent>) {
-    this.eventDispatchers.search.subscribe(handler);
+  public start(handler: Handler<void>) {
+    this.eventDispatchers.start.subscribe(handler);
+  }
+
+  public setUser(handler: Handler<IUser>) {
+    this.eventDispatchers.setUser.subscribe(handler);
+  }
+
+  public logger(handler: Handler<ILoggerEvent>) {
+    this.eventDispatchers.logger.subscribe(handler);
   }
 }
 
@@ -53,7 +78,6 @@ class EventDispatcherBase<T> {
   private handlers: Handler<T>[] = [];
 
   public call(event: T) {
-    // TODO: Не понял суть запрета
     // eslint-disable-next-line no-restricted-syntax
     for (const h of this.handlers) {
       h(event);
@@ -66,5 +90,5 @@ class EventDispatcherBase<T> {
 }
 
 export {
-  EventDispatcher, EventDispatcherCall, EventDispatcherSubscribe, 
+  EventDispatcher, EventDispatcherCall, EventDispatcherSubscribe, ILoggerEvent,
 };

@@ -20,9 +20,7 @@ class LayoutView {
 
   public render(layout: Node) {
     this.layout = renderElement(layout, 'div', 'layout');
-    renderElement(this.layout, 'div', 'layout__blackout');
-    this.loading = renderElement(this.layout, 'div', 'loading');
-    renderElement(this.layout, 'h1', 'header', 'Weather');
+    this.loading = renderElement(this.layout, 'div', 'loading loading_hide');
   }
 
   public getLayout() {
