@@ -14,6 +14,8 @@ interface IEventDispatchers {
   setUser: EventDispatcherBase<IUser>;
   logger: EventDispatcherBase<ILoggerEvent>;
   clickSound: EventDispatcherBase<void>;
+  clickTranslation: EventDispatcherBase<void>;
+  clickBackground: EventDispatcherBase<void>;
 }
 
 class EventDispatcher {
@@ -28,6 +30,8 @@ class EventDispatcher {
       setUser: new EventDispatcherBase<IUser>(),
       logger: new EventDispatcherBase<ILoggerEvent>(),
       clickSound: new EventDispatcherBase<void>(),
+      clickTranslation: new EventDispatcherBase<void>(),
+      clickBackground: new EventDispatcherBase<void>(),
     };
     this.call = new EventDispatcherCall(this.eventDispatchers);
     this.subscribe = new EventDispatcherSubscribe(this.eventDispatchers);
@@ -56,6 +60,14 @@ class EventDispatcherCall {
   public clickSound() {
     this.eventDispatchers.clickSound.call();
   }
+
+  public clickTranslation() {
+    this.eventDispatchers.clickTranslation.call();
+  }
+
+  public clickBackground() {
+    this.eventDispatchers.clickBackground.call();
+  }
 }
 
 class EventDispatcherSubscribe {
@@ -79,6 +91,14 @@ class EventDispatcherSubscribe {
 
   public clickSound(handler: Handler<void>) {
     this.eventDispatchers.clickSound.subscribe(handler);
+  }
+
+  public clickTranslation(handler: Handler<void>) {
+    this.eventDispatchers.clickTranslation.subscribe(handler);
+  }
+
+  public clickBackground(handler: Handler<void>) {
+    this.eventDispatchers.clickBackground.subscribe(handler);
   }
 }
 

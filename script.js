@@ -154,6 +154,8 @@ class EventDispatcher {
             setUser: new EventDispatcherBase(),
             logger: new EventDispatcherBase(),
             clickSound: new EventDispatcherBase(),
+            clickTranslation: new EventDispatcherBase(),
+            clickBackground: new EventDispatcherBase(),
         };
         this.call = new EventDispatcherCall(this.eventDispatchers);
         this.subscribe = new EventDispatcherSubscribe(this.eventDispatchers);
@@ -175,6 +177,12 @@ class EventDispatcherCall {
     clickSound() {
         this.eventDispatchers.clickSound.call();
     }
+    clickTranslation() {
+        this.eventDispatchers.clickTranslation.call();
+    }
+    clickBackground() {
+        this.eventDispatchers.clickBackground.call();
+    }
 }
 class EventDispatcherSubscribe {
     constructor(eventDispatchers) {
@@ -191,6 +199,12 @@ class EventDispatcherSubscribe {
     }
     clickSound(handler) {
         this.eventDispatchers.clickSound.subscribe(handler);
+    }
+    clickTranslation(handler) {
+        this.eventDispatchers.clickTranslation.subscribe(handler);
+    }
+    clickBackground(handler) {
+        this.eventDispatchers.clickBackground.subscribe(handler);
     }
 }
 class EventDispatcherBase {
@@ -272,19 +286,22 @@ class ControlsHelperController {
         this.view.onClickSpeak(() => {
             this.eventDispatcherCall.clickSound();
         });
-        this.view.onClickTranlate(() => {
-            debugger;
+        this.view.onClickTranslation(() => {
+            this.eventDispatcherCall.clickTranslation();
         });
         this.view.onClickBackground(() => {
-            debugger;
+            this.eventDispatcherCall.clickBackground();
         });
     }
 }
 class ControlsHelperView {
     render(layout) {
         this.speak = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(layout, 'span', 'button-icon button-icon-speak');
-        this.tranlate = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(layout, 'span', 'button-icon button-icon-tranlate');
+        this.translation = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(layout, 'span', 'button-icon button-icon-tranlate');
         this.background = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(layout, 'span', 'button-icon button-icon-background');
+        this.speak.title = 'Speaking the text';
+        this.translation.title = 'Show translation';
+        this.background.title = 'Show background image';
     }
     onClickSpeak(func) {
         this.speak.onclick = () => {
@@ -292,11 +309,17 @@ class ControlsHelperView {
             func();
         };
     }
-    onClickTranlate(func) {
-        this.tranlate.onclick = () => { func(); };
+    onClickTranslation(func) {
+        this.translation.onclick = () => {
+            this.translation.classList.add('button-icon_active');
+            func();
+        };
     }
     onClickBackground(func) {
-        this.background.onclick = () => { func(); };
+        this.background.onclick = () => {
+            this.background.classList.add('button-icon_active');
+            func();
+        };
     }
 }
 
@@ -436,6 +459,12 @@ class GamePanelController {
         eventDispatcher.subscribe.clickSound(() => {
             this.view.soundPlay();
         });
+        eventDispatcher.subscribe.clickTranslation(() => {
+            this.view.showTranslation(this.wordResponse.textExampleTranslate);
+        });
+        eventDispatcher.subscribe.clickBackground(() => {
+            this.renderBackgroundImageWords();
+        });
     }
     render(layout) {
         this.view.render(layout);
@@ -444,31 +473,40 @@ class GamePanelController {
     }
     load() {
         _Utils_DataAdapter__WEBPACK_IMPORTED_MODULE_1__["default"].getWords(0, 0).then((wordsResponse) => {
-            const wordResponse = wordsResponse.filter((o) => o.textExample.split(' ').length < 10)[0];
-            const text = wordResponse.textExample.replace('<b>', '').replace('</b>', '');
-            this.view.showTranslate(wordResponse.textExampleTranslate);
-            this.words = text.split(' ');
+            this.wordResponse = wordsResponse.filter((o) => o.textExample.split(' ').length < 10)[0];
+            const text = this.wordResponse.textExample.replace('<b>', '').replace('</b>', '');
+            const textLength = text.replace(/ /g, '').length;
+            this.words = text.split(' ')
+                .map((word, index) => ({ text: word, index, width: word.length / textLength }));
             const wordsShuffle = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["shuffle"])(this.words);
-            this.renderWords(wordsShuffle, text.replace(/ /g, '').length);
-            this.view.addSound(_Constants_Constants__WEBPACK_IMPORTED_MODULE_2__["fileResource"] + wordResponse.audioExample);
+            this.renderWords(wordsShuffle);
+            this.view.addSound(_Constants_Constants__WEBPACK_IMPORTED_MODULE_2__["fileResource"] + this.wordResponse.audioExample);
+            this.view.onClickReverseColorTextButton(() => this.words.map((o) => o.element));
         }).catch((error) => {
             debugger;
         });
     }
     checkPossiotions() {
-        this.view.checkPosition(this.words);
+        this.view.checkPosition(this.words.map((o) => o.text));
     }
-    renderWords(words, textLength) {
-        words.forEach((word) => this.view.addWord(word, (word.length / textLength) * 100));
+    renderWords(words) {
+        words.forEach((word) => this.view.addWord(word));
+    }
+    renderBackgroundImageWords() {
+        this.words.reduce((accumulator, word) => {
+            this.view.addBackgroundImageWord(word, accumulator);
+            return accumulator + word.width;
+        }, 0);
     }
 }
 class GamePanelView {
     render(layout) {
-        this.translate = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(layout, 'span', 'game__result-translate');
+        this.translation = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(layout, 'span', 'game__result-translate');
         this.resultLayout = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(layout, 'div', 'game__result-layuot');
         this.resourseLayout = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(layout, 'div', 'game__resourse-layuot');
         const resultButtons = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(layout, 'div', 'game__result-buttons');
         this.checkButton = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultButtons, 'button', 'game__check', 'Check');
+        this.reverseColorTextButton = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultButtons, 'button', 'game__check', 'ReverseColorText');
         this.resourseLayout.onmousedown = (e) => {
             this.source = e.target;
         };
@@ -500,12 +538,20 @@ class GamePanelView {
             this.source = undefined;
         };
     }
-    addWord(word, precent) {
-        const span = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(this.resourseLayout, 'span', 'game__word', word);
-        span.style.width = `${precent}%`;
+    addWord(word) {
+        const span = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(this.resourseLayout, 'span', 'game__word', word.text);
+        span.style.width = `${word.width * 100}%`;
+        word.element = span;
+    }
+    addBackgroundImageWord(word, startPosition) {
+        word.element.classList.add('puzzle');
+        word.element.style.backgroundPositionX = `-${startPosition * this.resultLayout.clientWidth}px`;
+        word.element.style.backgroundSize = `${this.resultLayout.clientWidth}px auto`;
     }
     checkPosition(words) {
         this.resultLayout.childNodes.forEach((value, index) => {
+            value.classList.remove('puzzle');
+            value.style.backgroundImage = undefined;
             value.classList.remove('game__word_true', 'game__word_false');
             if (value.textContent === words[index]) {
                 value.classList.add('game__word_true');
@@ -518,8 +564,8 @@ class GamePanelView {
     onClickCheckButton(func) {
         this.checkButton.onclick = func;
     }
-    showTranslate(translate) {
-        this.translate.textContent = translate;
+    showTranslation(translation) {
+        this.translation.textContent = translation;
     }
     addSound(soundUrl) {
         this.speaker = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(this.resourseLayout, 'audio', 'game__speaker');
@@ -527,6 +573,17 @@ class GamePanelView {
     }
     soundPlay() {
         this.speaker.play();
+    }
+    onClickReverseColorTextButton(getWordsElement) {
+        this.reverseColorTextButton.onclick = () => {
+            const elements = getWordsElement();
+            if (elements[0].classList.contains('game__word_color-reverse')) {
+                elements.forEach((o) => o.classList.remove('game__word_color-reverse'));
+            }
+            else {
+                elements.forEach((o) => o.classList.add('game__word_color-reverse'));
+            }
+        };
     }
 }
 

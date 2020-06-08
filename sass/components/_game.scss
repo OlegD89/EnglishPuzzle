@@ -8,6 +8,7 @@
   background-repeat: no-repeat;
   margin: 5px;
   border-radius: 5px;
+  cursor: pointer;
   &-speak {
     background-image: url(assets/speaker-icon.svg);
   }
@@ -31,6 +32,7 @@ label.droplist-label {
   margin-right: 15px;
   .droplist {
     margin-left: 5px;
+    cursor: pointer;
   }
 }
 
@@ -67,6 +69,9 @@ span.game__word {
   &_false {
     background-color: #f06c64;
   }
+  &_color-reverse {
+    color: #ffffff;
+  }
 }
 
 .game__result-buttons {
@@ -86,4 +91,14 @@ span.game__word {
   width: 100%;
   text-align: center;
   margin: 20px 0;
+}
+
+.puzzle {
+  background-image: url(assets/paintings/NinthWave.jpg);
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position-x: 0%;
+  background-position-y: 100%;
+  // background-size: 100% auto;
+  background-size: 1030px auto;
 }

@@ -15,24 +15,27 @@ export default class ControlsHelperController {
     this.view.onClickSpeak(() => {
       this.eventDispatcherCall.clickSound();
     });
-    this.view.onClickTranlate(() => {
-      debugger;
+    this.view.onClickTranslation(() => {
+      this.eventDispatcherCall.clickTranslation();
     });
     this.view.onClickBackground(() => {
-      debugger;
+      this.eventDispatcherCall.clickBackground();
     });
   }
 }
 
 class ControlsHelperView {
   private speak: HTMLSpanElement;
-  private tranlate: HTMLSpanElement;
+  private translation: HTMLSpanElement;
   private background: HTMLSpanElement;
 
   public render(layout: Node) {
     this.speak = renderElement(layout, 'span', 'button-icon button-icon-speak');
-    this.tranlate = renderElement(layout, 'span', 'button-icon button-icon-tranlate');
+    this.translation = renderElement(layout, 'span', 'button-icon button-icon-tranlate');
     this.background = renderElement(layout, 'span', 'button-icon button-icon-background');
+    this.speak.title = 'Speaking the text';
+    this.translation.title = 'Show translation';
+    this.background.title = 'Show background image';
   }
 
   public onClickSpeak(func: () => void) {
@@ -42,11 +45,17 @@ class ControlsHelperView {
     };
   }
 
-  public onClickTranlate(func: () => void) {
-    this.tranlate.onclick = () => { func(); };
+  public onClickTranslation(func: () => void) {
+    this.translation.onclick = () => {
+      this.translation.classList.add('button-icon_active');
+      func();
+    };
   }
 
   public onClickBackground(func: () => void) {
-    this.background.onclick = () => { func(); };
+    this.background.onclick = () => {
+      this.background.classList.add('button-icon_active');
+      func();
+    };
   }
 }

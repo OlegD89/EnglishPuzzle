@@ -272,6 +272,7 @@ input.radio-buttons_button:checked + span {
   background-repeat: no-repeat;
   margin: 5px;
   border-radius: 5px;
+  cursor: pointer;
 }
 .button-icon-speak {
   background-image: url(assets/speaker-icon.svg);
@@ -296,6 +297,7 @@ label.droplist-label {
 }
 label.droplist-label .droplist {
   margin-left: 5px;
+  cursor: pointer;
 }
 
 .game__result-layuot {
@@ -331,6 +333,9 @@ span.game__word_true {
 span.game__word_false {
   background-color: #f06c64;
 }
+span.game__word_color-reverse {
+  color: #ffffff;
+}
 
 .game__result-buttons {
   margin-top: 25px;
@@ -349,6 +354,15 @@ span.game__word_false {
   width: 100%;
   text-align: center;
   margin: 20px 0;
+}
+
+.puzzle {
+  background-image: url(assets/paintings/NinthWave.jpg);
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position-x: 0%;
+  background-position-y: 100%;
+  background-size: 1030px auto;
 }
 
 /*# sourceMappingURL=style.css.map */
