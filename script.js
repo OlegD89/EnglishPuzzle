@@ -446,96 +446,138 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return GamePanelController; });
 /* harmony import */ var _Utils_Utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../Utils/Utils */ "./src/Utils/Utils.ts");
 /* harmony import */ var _Utils_DataAdapter__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../Utils/DataAdapter */ "./src/Utils/DataAdapter.ts");
-/* harmony import */ var _Constants_Constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../Constants/Constants */ "./src/Constants/Constants.ts");
+/* harmony import */ var _GameRow__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./GameRow */ "./src/Components/Game/GameRow.ts");
+/* harmony import */ var _GameResource__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./GameResource */ "./src/Components/Game/GameResource.ts");
+
 
 
 
 class GamePanelController {
     constructor(eventDispatcher) {
+        this.gameRows = [];
         this.view = new GamePanelView();
+        this.resourse = new _GameResource__WEBPACK_IMPORTED_MODULE_3__["default"]();
         eventDispatcher.subscribe.setUser((user) => {
             this.user = user;
         });
         eventDispatcher.subscribe.clickSound(() => {
-            this.view.soundPlay();
+            this.gameRowActive.soundPlay();
         });
         eventDispatcher.subscribe.clickTranslation(() => {
-            this.view.showTranslation(this.wordResponse.textExampleTranslate);
+            this.view.showTranslation(this.gameRowActive.getTextExampleTranslate());
         });
         eventDispatcher.subscribe.clickBackground(() => {
-            this.renderBackgroundImageWords();
+            this.gameRowActive.renderBackgroundImageWords();
         });
     }
     render(layout) {
         this.view.render(layout);
         this.view.onClickCheckButton(() => this.checkPossiotions());
+        this.view.onClickReverseColorTextButton(() => this.gameRows.forEach((g) => g.reverseColorText()));
+        this.view.onPanelResize(() => this.resultResize());
+        this.resourse.render(this.view.getResoursePanel());
         this.load();
     }
     load() {
         _Utils_DataAdapter__WEBPACK_IMPORTED_MODULE_1__["default"].getWords(0, 0).then((wordsResponse) => {
-            this.wordResponse = wordsResponse.filter((o) => o.textExample.split(' ').length < 10)[0];
-            const text = this.wordResponse.textExample.replace('<b>', '').replace('</b>', '');
-            const textLength = text.replace(/ /g, '').length;
-            this.words = text.split(' ')
-                .map((word, index) => ({ text: word, index, width: word.length / textLength }));
-            const wordsShuffle = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["shuffle"])(this.words);
-            this.renderWords(wordsShuffle);
-            this.view.addSound(_Constants_Constants__WEBPACK_IMPORTED_MODULE_2__["fileResource"] + this.wordResponse.audioExample);
-            this.view.onClickReverseColorTextButton(() => this.words.map((o) => o.element));
+            const wordResponse = wordsResponse.filter((o) => o.textExample.split(' ').length < 10)[0];
+            const isActiveRow = true;
+            const gameRow = new _GameRow__WEBPACK_IMPORTED_MODULE_2__["default"](wordResponse, this.resourse, isActiveRow);
+            gameRow.render(this.view.getGamePanel(), 1);
+            if (isActiveRow)
+                this.gameRowActive = gameRow;
+            this.gameRows.push(gameRow);
         }).catch((error) => {
             debugger;
         });
     }
     checkPossiotions() {
-        this.view.checkPosition(this.words.map((o) => o.text));
+        this.gameRowActive.checkPosition();
     }
-    renderWords(words) {
-        words.forEach((word) => this.view.addWord(word));
-    }
-    renderBackgroundImageWords() {
-        this.words.reduce((accumulator, word) => {
-            this.view.addBackgroundImageWord(word, accumulator);
-            return accumulator + word.width;
-        }, 0);
+    resultResize() {
     }
 }
 class GamePanelView {
     render(layout) {
         this.translation = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(layout, 'span', 'game__result-translate');
-        this.resultLayout = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(layout, 'div', 'game__result-layuot');
-        this.resourseLayout = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(layout, 'div', 'game__resourse-layuot');
+        this.resultPanel = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(layout, 'div', 'game__result-panel');
+        this.resoursePanel = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(layout, 'div', 'game__panel');
         const resultButtons = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(layout, 'div', 'game__result-buttons');
         this.checkButton = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultButtons, 'button', 'game__check', 'Check');
         this.reverseColorTextButton = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultButtons, 'button', 'game__check', 'ReverseColorText');
-        this.resourseLayout.onmousedown = (e) => {
-            this.source = e.target;
-        };
-        this.resultLayout.onmouseup = (e) => {
-            if (!this.source)
+    }
+    getGamePanel() {
+        return this.resultPanel;
+    }
+    getResoursePanel() {
+        return this.resoursePanel;
+    }
+    onClickCheckButton(func) {
+        this.checkButton.onclick = func;
+    }
+    showTranslation(translation) {
+        this.translation.textContent = translation;
+    }
+    onClickReverseColorTextButton(func) {
+        this.reverseColorTextButton.onclick = func;
+    }
+    onPanelResize(func) {
+        let width = this.resultPanel.offsetWidth;
+        window.addEventListener('resize', () => {
+            if (width === this.resultPanel.offsetWidth)
                 return;
-            const current = e.target;
-            if (current === this.resultLayout) {
-                this.resultLayout.append(this.source);
-            }
-            else {
-                this.resultLayout.insertBefore(this.source, current);
-            }
-            this.source = undefined;
-        };
-        this.resultLayout.onmousedown = (e) => {
-            this.source = e.target;
+            width = this.resultPanel.offsetWidth;
+            func();
+        });
+    }
+}
+
+
+/***/ }),
+
+/***/ "./src/Components/Game/GameResource.ts":
+/*!*********************************************!*\
+  !*** ./src/Components/Game/GameResource.ts ***!
+  \*********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return GameResourseController; });
+/* harmony import */ var _Utils_Utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../Utils/Utils */ "./src/Utils/Utils.ts");
+/* harmony import */ var _GameStorage__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./GameStorage */ "./src/Components/Game/GameStorage.ts");
+
+
+class GameResourseController {
+    constructor() {
+        this.view = new GameResourseView();
+    }
+    render(resoursePanel) {
+        this.view.render(resoursePanel);
+    }
+    renderWords(words) {
+        words.forEach((word) => this.view.addWord(word));
+    }
+}
+class GameResourseView {
+    render(resoursePanel) {
+        Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resoursePanel, 'div', 'game__row');
+        this.resourseLayout = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resoursePanel, 'div', 'game__resourse-layuot');
+        this.resourseLayout.onmousedown = (e) => {
+            _GameStorage__WEBPACK_IMPORTED_MODULE_1__["default"].setWord(e.target);
         };
         this.resourseLayout.onmouseup = (e) => {
-            if (!this.source)
+            const source = _GameStorage__WEBPACK_IMPORTED_MODULE_1__["default"].getWord();
+            if (!source)
                 return;
             const current = e.target;
             if (current === this.resourseLayout) {
-                this.resourseLayout.append(this.source);
+                this.resourseLayout.append(source);
             }
             else {
-                this.resourseLayout.insertBefore(this.source, current);
+                this.resourseLayout.insertBefore(source, current);
             }
-            this.source = undefined;
         };
     }
     addWord(word) {
@@ -543,8 +585,111 @@ class GamePanelView {
         span.style.width = `${word.width * 100}%`;
         word.element = span;
     }
+}
+
+
+/***/ }),
+
+/***/ "./src/Components/Game/GameRow.ts":
+/*!****************************************!*\
+  !*** ./src/Components/Game/GameRow.ts ***!
+  \****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return GameRowController; });
+/* harmony import */ var _Utils_Utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../Utils/Utils */ "./src/Utils/Utils.ts");
+/* harmony import */ var _Constants_Constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../Constants/Constants */ "./src/Constants/Constants.ts");
+/* harmony import */ var _GameStorage__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./GameStorage */ "./src/Components/Game/GameStorage.ts");
+
+
+
+class GameRowController {
+    constructor(wordResponse, resource, isActiveRow = false) {
+        this.view = new GameRowView();
+        this.resource = resource;
+        this.wordResponse = wordResponse;
+        this.isActiveRow = isActiveRow;
+        const text = wordResponse.textExample.replace('<b>', '').replace('</b>', '');
+        const textLength = text.replace(/ /g, '').length;
+        this.words = text.split(' ')
+            .map((word, index) => ({ text: word, index, width: word.length / textLength }));
+    }
+    render(resultPanel, row) {
+        this.view.render(resultPanel, row);
+        this.view.onResultResize(() => this.resultResize());
+        if (this.isActiveRow) {
+            this.view.addEvents();
+            this.view.addSound(_Constants_Constants__WEBPACK_IMPORTED_MODULE_1__["fileResource"] + this.wordResponse.audioExample);
+            this.resource.renderWords(this.words);
+        }
+        else {
+        }
+    }
+    reverseColorText() {
+        GameRowView.reverseColorText(this.words.map((o) => o.element));
+    }
+    checkPosition() {
+        this.view.checkPosition(this.words.map((o) => o.text));
+    }
+    getTextExampleTranslate() {
+        return this.wordResponse.textExampleTranslate;
+    }
+    renderBackgroundImageWords() {
+        this.isVisibleBackgroundImage = true;
+        this.words.reduce((accumulator, word) => {
+            this.view.addBackgroundImageWord(word, accumulator);
+            return accumulator + word.width;
+        }, 0);
+    }
+    soundPlay() {
+        this.view.soundPlay();
+    }
+    resultResize() {
+        if (!this.isVisibleBackgroundImage)
+            return;
+    }
+}
+class GameRowView {
+    render(resultPanel, row = 1) {
+        this.resultPanel = resultPanel;
+        const resultRow = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultPanel, 'div', 'game__panel game__panel-row');
+        Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultRow, 'div', 'game__row', row.toString());
+        this.resultLayout = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultRow, 'div', 'game__result-layuot');
+    }
+    addEvents() {
+        this.resultLayout.onmousedown = (e) => {
+            _GameStorage__WEBPACK_IMPORTED_MODULE_2__["default"].setWord(e.target);
+        };
+        this.resultLayout.onmouseup = (e) => {
+            const source = _GameStorage__WEBPACK_IMPORTED_MODULE_2__["default"].getWord();
+            if (!source)
+                return;
+            const current = e.target;
+            if (current === this.resultLayout) {
+                this.resultLayout.append(source);
+            }
+            else {
+                this.resultLayout.insertBefore(source, current);
+            }
+        };
+    }
+    static reverseColorText(wordElements) {
+        if (wordElements[0].classList.contains('game__word_color-reverse')) {
+            wordElements.forEach((o) => o.classList.remove('game__word_color-reverse'));
+        }
+        else {
+            wordElements.forEach((o) => o.classList.add('game__word_color-reverse'));
+        }
+    }
     addBackgroundImageWord(word, startPosition) {
         word.element.classList.add('puzzle');
+        word.element.style.backgroundPositionX = `-${startPosition * this.resultLayout.clientWidth}px`;
+        word.element.style.backgroundSize = `${this.resultLayout.clientWidth}px auto`;
+    }
+    resizeBackgroundImageWord(word, startPosition) {
         word.element.style.backgroundPositionX = `-${startPosition * this.resultLayout.clientWidth}px`;
         word.element.style.backgroundSize = `${this.resultLayout.clientWidth}px auto`;
     }
@@ -561,31 +706,47 @@ class GamePanelView {
             }
         });
     }
-    onClickCheckButton(func) {
-        this.checkButton.onclick = func;
-    }
-    showTranslation(translation) {
-        this.translation.textContent = translation;
-    }
     addSound(soundUrl) {
-        this.speaker = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(this.resourseLayout, 'audio', 'game__speaker');
+        this.speaker = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(this.resultPanel, 'audio', 'game__speaker');
         this.speaker.src = soundUrl;
     }
     soundPlay() {
         this.speaker.play();
     }
-    onClickReverseColorTextButton(getWordsElement) {
-        this.reverseColorTextButton.onclick = () => {
-            const elements = getWordsElement();
-            if (elements[0].classList.contains('game__word_color-reverse')) {
-                elements.forEach((o) => o.classList.remove('game__word_color-reverse'));
-            }
-            else {
-                elements.forEach((o) => o.classList.add('game__word_color-reverse'));
-            }
-        };
+    onResultResize(func) {
+        let width = this.resultLayout.offsetWidth;
+        window.addEventListener('resize', () => {
+            if (width === this.resultLayout.offsetWidth)
+                return;
+            width = this.resultLayout.offsetWidth;
+            func();
+        });
     }
 }
+
+
+/***/ }),
+
+/***/ "./src/Components/Game/GameStorage.ts":
+/*!********************************************!*\
+  !*** ./src/Components/Game/GameStorage.ts ***!
+  \********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+class GameStorage {
+    static setWord(word) {
+        this.currentWord = word;
+    }
+    static getWord() {
+        const word = this.currentWord;
+        this.currentWord = undefined;
+        return word;
+    }
+}
+/* harmony default export */ __webpack_exports__["default"] = (GameStorage);
 
 
 /***/ }),

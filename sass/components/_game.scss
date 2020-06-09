@@ -19,7 +19,7 @@
     background-image: url(assets/image-icon.png);
   }
   &_active {
-    background-color: #4c40ff;
+    background-color: #6466f0;
   }
 }
 
@@ -35,19 +35,43 @@ label.droplist-label {
     cursor: pointer;
   }
 }
-
-.game__result-layuot {
-  height: 50px;
+.game__result-panel {
+  width: calc(100% - 20px);
   background-color: #ffffff;
   box-shadow: 7px 6px 13px rgba(0,0,0,0.5);
   display: flex;
   align-items: center;
 }
 
+.game__panel {
+  display: flex;
+  height: 50px;
+  margin-top: 25px;
+  &-row {
+    margin-top: 0;
+    width: 100%;
+  }
+}
+.game__row {
+  height: 100%;
+  width: 20px;
+  background-color: #6466f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.game__result-layuot {
+  height: 100%;
+  width: calc(100% - 20px);
+  background-color: #ffffff;
+  box-shadow: 7px 6px 13px rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+}
 
 .game__resourse-layuot {
   height: 50px;
-  margin-top: 25px;
+  width: calc(100% - 20px);
   background-color: #ffffff;
   box-shadow: 7px 6px 13px rgba(0,0,0,0.5);
   display: flex;
@@ -57,7 +81,7 @@ label.droplist-label {
 span.game__word {
   color: #000000;
   outline: 5px solid #6466f0;
-  height: 100%;
+  height: calc(100% - 5px);
   display: flex;
   align-items: center;
   justify-content: center;
