@@ -448,6 +448,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Utils_DataAdapter__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../Utils/DataAdapter */ "./src/Utils/DataAdapter.ts");
 /* harmony import */ var _GameRow__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./GameRow */ "./src/Components/Game/GameRow.ts");
 /* harmony import */ var _GameResource__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./GameResource */ "./src/Components/Game/GameResource.ts");
+/* harmony import */ var _Constants_Constants__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../Constants/Constants */ "./src/Constants/Constants.ts");
+/* harmony import */ var _Constants_Paintings__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../Constants/Paintings */ "./src/Constants/Paintings.ts");
+
+
 
 
 
@@ -467,34 +471,65 @@ class GamePanelController {
             this.view.showTranslation(this.gameRowActive.getTextExampleTranslate());
         });
         eventDispatcher.subscribe.clickBackground(() => {
-            this.gameRowActive.renderBackgroundImageWords();
+            this.gameRows.forEach((g) => g.renderBackgroundImageWords());
         });
     }
     render(layout) {
         this.view.render(layout);
+        this.view.onClickSurrenderButton(() => this.surrender());
         this.view.onClickCheckButton(() => this.checkPossiotions());
+        this.view.onClickContinueButton(() => this.success());
         this.view.onClickReverseColorTextButton(() => this.gameRows.forEach((g) => g.reverseColorText()));
-        this.view.onPanelResize(() => this.resultResize());
+        this.view.onPanelResize(() => this.resize());
         this.resourse.render(this.view.getResoursePanel());
         this.load();
     }
     load() {
-        _Utils_DataAdapter__WEBPACK_IMPORTED_MODULE_1__["default"].getWords(0, 0).then((wordsResponse) => {
-            const wordResponse = wordsResponse.filter((o) => o.textExample.split(' ').length < 10)[0];
+        this.page = 0;
+        _Utils_DataAdapter__WEBPACK_IMPORTED_MODULE_1__["default"].getWords(0, this.page).then((wordsResponse) => {
+            this.calcRowHeigth();
+            this.wordsResponse = wordsResponse.filter((o) => o.textExample.split(' ').length < 10);
             const isActiveRow = true;
-            const gameRow = new _GameRow__WEBPACK_IMPORTED_MODULE_2__["default"](wordResponse, this.resourse, isActiveRow);
-            gameRow.render(this.view.getGamePanel(), 1);
-            if (isActiveRow)
-                this.gameRowActive = gameRow;
-            this.gameRows.push(gameRow);
+            this.addGameRow(this.wordsResponse[0], isActiveRow);
         }).catch((error) => {
             debugger;
         });
     }
-    checkPossiotions() {
-        this.gameRowActive.checkPosition();
+    addGameRow(wordResponse, isActiveRow) {
+        const gameRow = new _GameRow__WEBPACK_IMPORTED_MODULE_2__["default"](wordResponse, this.resourse, isActiveRow);
+        gameRow.render(this.view.getGamePanel(), this.gameRows.length + 1, this.rowHeight);
+        if (isActiveRow)
+            this.gameRowActive = gameRow;
+        this.gameRows.push(gameRow);
     }
-    resultResize() {
+    checkPossiotions() {
+        const isCorrect = this.gameRowActive.checkPosition();
+        if (!isCorrect)
+            return;
+        this.view.showContinue();
+    }
+    surrender() {
+        this.gameRowActive.surrender();
+        this.view.showContinue();
+    }
+    success() {
+        this.view.hideContinue();
+        this.gameRowActive.deactivate();
+        this.gameRowActive = undefined;
+        if (this.gameRows.length !== _Constants_Constants__WEBPACK_IMPORTED_MODULE_4__["rowCount"]) {
+            this.addGameRow(this.wordsResponse[this.gameRows.length], true);
+        }
+        else {
+        }
+    }
+    resize() {
+        this.calcRowHeigth();
+        this.gameRows.forEach((g) => g.changeHeight(this.rowHeight));
+    }
+    calcRowHeigth() {
+        const painting = _Constants_Paintings__WEBPACK_IMPORTED_MODULE_5__["default"][this.page];
+        const resultPanelHeight = (painting.height / painting.width) * (this.view.getWidthtGamePanel() - _Constants_Constants__WEBPACK_IMPORTED_MODULE_4__["rowNumberWidth"]);
+        this.rowHeight = resultPanelHeight / (_Constants_Constants__WEBPACK_IMPORTED_MODULE_4__["rowCount"] + 1);
     }
 }
 class GamePanelView {
@@ -503,8 +538,10 @@ class GamePanelView {
         this.resultPanel = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(layout, 'div', 'game__result-panel');
         this.resoursePanel = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(layout, 'div', 'game__panel');
         const resultButtons = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(layout, 'div', 'game__result-buttons');
-        this.checkButton = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultButtons, 'button', 'game__check', 'Check');
-        this.reverseColorTextButton = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultButtons, 'button', 'game__check', 'ReverseColorText');
+        this.surrenderButton = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultButtons, 'button', 'game__result-button result-button__surrender', 'I don\'t know');
+        this.сontinueButton = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultButtons, 'button', 'game__result-button result-button__сontinue game__result-button_hide', 'Continue');
+        this.checkButton = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultButtons, 'button', 'game__result-button result-button__check', 'Check');
+        this.reverseColorTextButton = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultButtons, 'button', 'game__result-button result-button__helper', 'Reverse color text');
     }
     getGamePanel() {
         return this.resultPanel;
@@ -512,14 +549,33 @@ class GamePanelView {
     getResoursePanel() {
         return this.resoursePanel;
     }
+    onClickSurrenderButton(func) {
+        this.surrenderButton.onclick = func;
+    }
     onClickCheckButton(func) {
         this.checkButton.onclick = func;
+    }
+    onClickContinueButton(func) {
+        this.сontinueButton.onclick = func;
     }
     showTranslation(translation) {
         this.translation.textContent = translation;
     }
+    showContinue() {
+        this.surrenderButton.classList.add('game__result-button_hide');
+        this.checkButton.classList.add('game__result-button_hide');
+        this.сontinueButton.classList.remove('game__result-button_hide');
+    }
+    hideContinue() {
+        this.surrenderButton.classList.remove('game__result-button_hide');
+        this.checkButton.classList.remove('game__result-button_hide');
+        this.сontinueButton.classList.add('game__result-button_hide');
+    }
     onClickReverseColorTextButton(func) {
         this.reverseColorTextButton.onclick = func;
+    }
+    getWidthtGamePanel() {
+        return this.resultPanel.offsetWidth;
     }
     onPanelResize(func) {
         let width = this.resultPanel.offsetWidth;
@@ -557,7 +613,7 @@ class GameResourseController {
         this.view.render(resoursePanel);
     }
     renderWords(words) {
-        words.forEach((word) => this.view.addWord(word));
+        Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["shuffle"])(words).forEach((word) => this.view.addWord(word));
     }
 }
 class GameResourseView {
@@ -617,8 +673,10 @@ class GameRowController {
         this.words = text.split(' ')
             .map((word, index) => ({ text: word, index, width: word.length / textLength }));
     }
-    render(resultPanel, row) {
-        this.view.render(resultPanel, row);
+    render(resultPanel, row, rowHeight) {
+        this.row = row;
+        this.rowHeight = rowHeight;
+        this.view.render(resultPanel, row, rowHeight);
         this.view.onResultResize(() => this.resultResize());
         if (this.isActiveRow) {
             this.view.addEvents();
@@ -629,35 +687,51 @@ class GameRowController {
         }
     }
     reverseColorText() {
-        GameRowView.reverseColorText(this.words.map((o) => o.element));
+        GameRowView.reverseColorText(this.getWordElements());
     }
     checkPosition() {
-        this.view.checkPosition(this.words.map((o) => o.text));
+        return this.view.checkPosition(this.words.map((o) => o.text));
+    }
+    surrender() {
+        this.view.setSuccessPosition(this.getWordElements());
     }
     getTextExampleTranslate() {
         return this.wordResponse.textExampleTranslate;
     }
     renderBackgroundImageWords() {
-        this.isVisibleBackgroundImage = true;
         this.words.reduce((accumulator, word) => {
-            this.view.addBackgroundImageWord(word, accumulator);
+            this.view.addBackgroundImageWord(word, accumulator, this.getPostitionY());
             return accumulator + word.width;
         }, 0);
     }
     soundPlay() {
         this.view.soundPlay();
     }
+    deactivate() {
+        this.isActiveRow = false;
+        this.renderBackgroundImageWords();
+        this.view.removeEvents();
+    }
+    changeHeight(rowHeight) {
+        this.rowHeight = rowHeight;
+        this.view.changeHeight(this.getWordElements(), rowHeight, this.getPostitionY());
+    }
+    getPostitionY() {
+        return `-${this.row * this.rowHeight}px`;
+    }
+    getWordElements() {
+        return this.words.map((word) => word.element);
+    }
     resultResize() {
-        if (!this.isVisibleBackgroundImage)
-            return;
     }
 }
 class GameRowView {
-    render(resultPanel, row = 1) {
+    render(resultPanel, row, rowHeight) {
         this.resultPanel = resultPanel;
-        const resultRow = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultPanel, 'div', 'game__panel game__panel-row');
-        Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultRow, 'div', 'game__row', row.toString());
-        this.resultLayout = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultRow, 'div', 'game__result-layuot');
+        this.resultRow = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultPanel, 'div', 'game__panel game__panel-row');
+        this.resultRow.style.height = `${rowHeight}px`;
+        Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(this.resultRow, 'div', 'game__row', row.toString());
+        this.resultLayout = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(this.resultRow, 'div', 'game__result-layuot');
     }
     addEvents() {
         this.resultLayout.onmousedown = (e) => {
@@ -676,6 +750,10 @@ class GameRowView {
             }
         };
     }
+    removeEvents() {
+        this.resultLayout.onmousedown = undefined;
+        this.resultLayout.onmouseup = undefined;
+    }
     static reverseColorText(wordElements) {
         if (wordElements[0].classList.contains('game__word_color-reverse')) {
             wordElements.forEach((o) => o.classList.remove('game__word_color-reverse'));
@@ -684,16 +762,19 @@ class GameRowView {
             wordElements.forEach((o) => o.classList.add('game__word_color-reverse'));
         }
     }
-    addBackgroundImageWord(word, startPosition) {
+    addBackgroundImageWord(word, startPosition, positionY) {
         word.element.classList.add('puzzle');
         word.element.style.backgroundPositionX = `-${startPosition * this.resultLayout.clientWidth}px`;
         word.element.style.backgroundSize = `${this.resultLayout.clientWidth}px auto`;
+        word.element.style.backgroundPositionY = positionY;
     }
-    resizeBackgroundImageWord(word, startPosition) {
+    resizeBackgroundImageWord(word, startPosition, positionY) {
         word.element.style.backgroundPositionX = `-${startPosition * this.resultLayout.clientWidth}px`;
         word.element.style.backgroundSize = `${this.resultLayout.clientWidth}px auto`;
+        word.element.style.backgroundPositionY = positionY;
     }
     checkPosition(words) {
+        let isCorrect = !!this.resultLayout.childNodes.length;
         this.resultLayout.childNodes.forEach((value, index) => {
             value.classList.remove('puzzle');
             value.style.backgroundImage = undefined;
@@ -703,8 +784,13 @@ class GameRowView {
             }
             else {
                 value.classList.add('game__word_false');
+                isCorrect = false;
             }
         });
+        return isCorrect;
+    }
+    setSuccessPosition(words) {
+        words.forEach((word) => this.resultLayout.append(word));
     }
     addSound(soundUrl) {
         this.speaker = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(this.resultPanel, 'audio', 'game__speaker');
@@ -712,6 +798,12 @@ class GameRowView {
     }
     soundPlay() {
         this.speaker.play();
+    }
+    changeHeight(wordElements, rowHeight, positionY) {
+        this.resultRow.style.height = `${rowHeight}px`;
+        wordElements.forEach((wordElement) => {
+            wordElement.style.backgroundPositionY = positionY;
+        });
     }
     onResultResize(func) {
         let width = this.resultLayout.offsetWidth;
@@ -1133,14 +1225,48 @@ class StartView {
 /*!************************************!*\
   !*** ./src/Constants/Constants.ts ***!
   \************************************/
-/*! exports provided: fileResource */
+/*! exports provided: fileResource, rowCount, rowNumberWidth */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "fileResource", function() { return fileResource; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "rowCount", function() { return rowCount; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "rowNumberWidth", function() { return rowNumberWidth; });
 const fileResource = 'https://raw.githubusercontent.com/olegd89/rslang-data/master/';
+const rowCount = 10;
+const rowNumberWidth = 20;
 
+
+
+/***/ }),
+
+/***/ "./src/Constants/Paintings.ts":
+/*!************************************!*\
+  !*** ./src/Constants/Paintings.ts ***!
+  \************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+const paintings = [
+    {
+        src: 'assets/paintings/NinthWave.jpg',
+        description: 'Ivan Aivazovsky. The Ninth Wave. 1850',
+        translate: 'Иван Айвазовский. Девятый вал. 1850',
+        width: 2027,
+        height: 1338,
+    },
+    {
+        src: 'assets/paintings/SeaKoktebel.jpg',
+        description: 'Ivan Aivazovsky. Sea. Koktebel. 1853',
+        translate: 'Иван Айвазовский. Море. Коктебель. 1853',
+        width: 1531,
+        height: 1080,
+    },
+];
+/* harmony default export */ __webpack_exports__["default"] = (paintings);
 
 
 /***/ }),

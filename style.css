@@ -1,3 +1,4 @@
+@charset "UTF-8";
 html {
   font-size: 10px;
   font-family: "Open Sans", Verdana, Arial, sans-serif;
@@ -15,7 +16,7 @@ h1, h2 {
 
 .layout {
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
   background-image: url("./assets/background.jpg");
   color: #ffffff;
   background-position: 50%;
@@ -262,29 +263,11 @@ input.radio-buttons_button:checked + span {
   color: #ff0000;
 }
 
-.button-icon {
+.game__result-translate {
   display: inline-block;
-  width: 32px;
-  height: 32px;
-  background-color: #ffffff;
-  background-size: 25px 25px;
-  background-position: center;
-  background-repeat: no-repeat;
-  margin: 5px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-.button-icon-speak {
-  background-image: url(assets/speaker-icon.svg);
-}
-.button-icon-tranlate {
-  background-image: url(assets/docs-icon.svg);
-}
-.button-icon-background {
-  background-image: url(assets/image-icon.png);
-}
-.button-icon_active {
-  background-color: #6466f0;
+  width: 100%;
+  text-align: center;
+  margin: 20px 0;
 }
 
 .game-layout {
@@ -292,19 +275,12 @@ input.radio-buttons_button:checked + span {
   max-width: 1030px;
 }
 
-label.droplist-label {
-  margin-right: 15px;
-}
-label.droplist-label .droplist {
-  margin-left: 5px;
-  cursor: pointer;
-}
-
 .game__result-panel {
-  width: calc(100% - 20px);
+  width: 100%;
   background-color: #ffffff;
   box-shadow: 7px 6px 13px rgba(0, 0, 0, 0.5);
   display: flex;
+  flex-direction: column;
   align-items: center;
 }
 
@@ -331,7 +307,6 @@ label.droplist-label .droplist {
   height: 100%;
   width: calc(100% - 20px);
   background-color: #ffffff;
-  box-shadow: 7px 6px 13px rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
 }
@@ -348,7 +323,7 @@ label.droplist-label .droplist {
 span.game__word {
   color: #000000;
   outline: 5px solid #6466f0;
-  height: calc(100% - 5px);
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -364,24 +339,9 @@ span.game__word_false {
 span.game__word_color-reverse {
   color: #ffffff;
 }
-
-.game__result-buttons {
-  margin-top: 25px;
-  display: flex;
-  justify-content: center;
-}
-
-.game__check {
-  padding: 10px;
-  margin: 0 10px;
-  font-size: 2rem;
-}
-
-.game__result-translate {
-  display: inline-block;
-  width: 100%;
-  text-align: center;
-  margin: 20px 0;
+span.game__word_hide {
+  color: rgba(0, 0, 0, 0);
+  outline: none;
 }
 
 .puzzle {
@@ -391,6 +351,66 @@ span.game__word_color-reverse {
   background-position-x: 0%;
   background-position-y: 100%;
   background-size: 1030px auto;
+}
+
+.button-icon {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  background-color: #ffffff;
+  background-size: 25px 25px;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.button-icon-speak {
+  background-image: url(assets/speaker-icon.svg);
+}
+.button-icon-tranlate {
+  background-image: url(assets/docs-icon.svg);
+}
+.button-icon-background {
+  background-image: url(assets/image-icon.png);
+}
+.button-icon_active {
+  background-color: #6466f0;
+}
+
+label.droplist-label {
+  margin-right: 15px;
+}
+label.droplist-label .droplist {
+  margin-left: 5px;
+  cursor: pointer;
+}
+
+.game__result-buttons {
+  margin-top: 25px;
+  display: flex;
+  justify-content: center;
+}
+.game__result-buttons .result-button__surrender {
+  color: #f06c64;
+}
+.game__result-buttons .result-button__check {
+  color: #6466f0;
+}
+.game__result-buttons .result-button__сontinue {
+  color: #74f064;
+}
+.game__result-buttons .result-button__helper {
+  font-size: 1.4rem;
+}
+
+.game__result-button {
+  padding: 10px;
+  margin: 0 10px;
+  font-size: 2rem;
+}
+.game__result-button_hide {
+  display: none;
 }
 
 /*# sourceMappingURL=style.css.map */

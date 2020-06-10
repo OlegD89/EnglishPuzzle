@@ -1,7 +1,7 @@
 .layout {
     // width: calc(100% - 40px);
     width:100%;
-    height: 100vh;
+    min-height: 100vh;
     background-image: url('./assets/background.jpg');
     color: $color-text-light;
     background-position: 50%;

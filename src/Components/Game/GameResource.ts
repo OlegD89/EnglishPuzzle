@@ -1,4 +1,4 @@
-import { renderElement } from '../../Utils/Utils';
+import { renderElement, shuffle } from '../../Utils/Utils';
 import IWordGame from './IWordGame';
 import GameStorage from './GameStorage';
 
@@ -14,7 +14,7 @@ export default class GameResourseController {
   }
 
   public renderWords(words: IWordGame[]) {
-    words.forEach((word: IWordGame) => this.view.addWord(word));
+    shuffle(words).forEach((word: IWordGame) => this.view.addWord(word));
   }
 }
 

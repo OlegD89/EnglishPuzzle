@@ -1,45 +1,22 @@
-.button-icon {
+.game__result-translate {
   display: inline-block;
-  width: 32px;
-  height: 32px;
-  background-color: #ffffff;
-  background-size: 25px 25px;
-  background-position: center;
-  background-repeat: no-repeat;
-  margin: 5px;
-  border-radius: 5px;
-  cursor: pointer;
-  &-speak {
-    background-image: url(assets/speaker-icon.svg);
-  }
-  &-tranlate {
-    background-image: url(assets/docs-icon.svg);
-  }
-  &-background {
-    background-image: url(assets/image-icon.png);
-  }
-  &_active {
-    background-color: #6466f0;
-  }
+  width: 100%;
+  text-align: center;
+  margin: 20px 0;
 }
+
 
 .game-layout {
   width: 100%;
   max-width: 1030px;
 }
 
-label.droplist-label {
-  margin-right: 15px;
-  .droplist {
-    margin-left: 5px;
-    cursor: pointer;
-  }
-}
 .game__result-panel {
-  width: calc(100% - 20px);
+  width: 100%;
   background-color: #ffffff;
   box-shadow: 7px 6px 13px rgba(0,0,0,0.5);
   display: flex;
+  flex-direction: column;
   align-items: center;
 }
 
@@ -64,7 +41,6 @@ label.droplist-label {
   height: 100%;
   width: calc(100% - 20px);
   background-color: #ffffff;
-  box-shadow: 7px 6px 13px rgba(0,0,0,0.5);
   display: flex;
   align-items: center;
 }
@@ -81,7 +57,7 @@ label.droplist-label {
 span.game__word {
   color: #000000;
   outline: 5px solid #6466f0;
-  height: calc(100% - 5px);
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -96,25 +72,10 @@ span.game__word {
   &_color-reverse {
     color: #ffffff;
   }
-}
-
-.game__result-buttons {
-  margin-top: 25px;
-  display: flex;
-  justify-content: center;
-}
-
-.game__check {
-  padding: 10px;
-  margin: 0 10px;
-  font-size: 2rem;
-}
-
-.game__result-translate {
-  display: inline-block;
-  width: 100%;
-  text-align: center;
-  margin: 20px 0;
+  &_hide {
+    color: rgba(0, 0, 0, 0);
+    outline: none;
+  }
 }
 
 .puzzle {

@@ -1,0 +1,59 @@
+.button-icon {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  background-color: #ffffff;
+  background-size: 25px 25px;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  &-speak {
+    background-image: url(assets/speaker-icon.svg);
+  }
+  &-tranlate {
+    background-image: url(assets/docs-icon.svg);
+  }
+  &-background {
+    background-image: url(assets/image-icon.png);
+  }
+  &_active {
+    background-color: #6466f0;
+  }
+}
+
+label.droplist-label {
+  margin-right: 15px;
+  .droplist {
+    margin-left: 5px;
+    cursor: pointer;
+  }
+}
+
+.game__result-buttons {
+  margin-top: 25px;
+  display: flex;
+  justify-content: center;
+  .result-button__surrender {
+    color: #f06c64;
+  }
+  .result-button__check {
+    color: #6466f0;
+  }
+  .result-button__сontinue {
+    color: #74f064;
+  }
+  .result-button__helper {
+    font-size: 1.4rem;
+  }
+}
+
+.game__result-button {
+  padding: 10px;
+  margin: 0 10px;
+  font-size: 2rem;
+  &_hide {
+    display: none;
+  }
+}
