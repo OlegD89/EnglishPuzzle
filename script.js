@@ -611,6 +611,7 @@ class GameResourseController {
     }
     render(resoursePanel) {
         this.view.render(resoursePanel);
+        _GameStorage__WEBPACK_IMPORTED_MODULE_1__["default"].wordToResourse = (element) => this.view.appendWordElement(element);
     }
     renderWords(words) {
         Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["shuffle"])(words).forEach((word) => this.view.addWord(word));
@@ -631,15 +632,26 @@ class GameResourseView {
             if (current === this.resourseLayout) {
                 this.resourseLayout.append(source);
             }
+            else if (current === source) {
+                this.wordClick(current);
+            }
             else {
                 this.resourseLayout.insertBefore(source, current);
             }
         };
     }
+    appendWordElement(element) {
+        this.resourseLayout.append(element);
+    }
     addWord(word) {
         const span = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(this.resourseLayout, 'span', 'game__word', word.text);
         span.style.width = `${word.width * 100}%`;
         word.element = span;
+    }
+    wordClick(element) {
+        if (element.classList.contains('game__word')) {
+            _GameStorage__WEBPACK_IMPORTED_MODULE_1__["default"].wordToGame(element);
+        }
     }
 }
 
@@ -745,14 +757,24 @@ class GameRowView {
             if (current === this.resultLayout) {
                 this.resultLayout.append(source);
             }
+            else if (current === source) {
+                this.wordClick(current);
+            }
             else {
                 this.resultLayout.insertBefore(source, current);
             }
         };
+        _GameStorage__WEBPACK_IMPORTED_MODULE_2__["default"].wordToGame = (wordElement) => {
+            this.resultLayout.append(wordElement);
+        };
+    }
+    wordClick(element) {
+        _GameStorage__WEBPACK_IMPORTED_MODULE_2__["default"].wordToResourse(element);
     }
     removeEvents() {
         this.resultLayout.onmousedown = undefined;
         this.resultLayout.onmouseup = undefined;
+        _GameStorage__WEBPACK_IMPORTED_MODULE_2__["default"].wordToGame = undefined;
     }
     static reverseColorText(wordElements) {
         if (wordElements[0].classList.contains('game__word_color-reverse')) {
@@ -830,7 +852,9 @@ class GameRowView {
 __webpack_require__.r(__webpack_exports__);
 class GameStorage {
     static setWord(word) {
-        this.currentWord = word;
+        if (word.classList.contains('game__word')) {
+            this.currentWord = word;
+        }
     }
     static getWord() {
         const word = this.currentWord;

@@ -1,6 +1,6 @@
 import { renderElement } from '../../Utils/Utils';
 import IWordResponse from '../../Constants/IWord';
-import { fileResource, rowCount } from '../../Constants/Constants';
+import { fileResource } from '../../Constants/Constants';
 import GameResourseController from './GameResource';
 import IWordGame from './IWordGame';
 import GameStorage from './GameStorage';
@@ -126,15 +126,26 @@ class GameRowView {
       const current = e.target as HTMLElement;
       if (current === this.resultLayout) {
         this.resultLayout.append(source);
+      } else if (current === source) {
+        this.wordClick(current); // click and mousedown conflicting
       } else {
         this.resultLayout.insertBefore(source, current);
       }
     };
+    GameStorage.wordToGame = (wordElement: HTMLElement) => {
+      this.resultLayout.append(wordElement);
+    };
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private wordClick(element: HTMLElement) {
+    GameStorage.wordToResourse(element);
   }
 
   public removeEvents() {
     this.resultLayout.onmousedown = undefined;
     this.resultLayout.onmouseup = undefined;
+    GameStorage.wordToGame = undefined;
   }
 
 
