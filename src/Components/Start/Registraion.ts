@@ -12,6 +12,9 @@ export default class RegistrationController {
     this.view = new RegistrationView();
     this.eventDispatcherCall = eventDispatcher.call;
     this.logInShow = logInShow;
+    eventDispatcher.subscribe.setUser(() => {
+      this.view.hide();
+    });
   }
 
   public render(layout: Node) {

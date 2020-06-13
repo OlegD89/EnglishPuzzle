@@ -1,8 +1,7 @@
 import { EventDispatcher } from '../EventDispatcher';
 import { renderElement } from '../../Utils/Utils';
 import DataAdapter from '../../Utils/DataAdapter';
-import IUser from '../../Constants/IUser';
-import IWordResponse from '../../Constants/IWord';
+import IWordResponse, { IGetWord, IUserWord } from '../../Constants/IWord';
 import GameRowController from './GameRow';
 import GameResourseController from './GameResource';
 import { rowCount, rowNumberWidth } from '../../Constants/Constants';
@@ -10,19 +9,23 @@ import paintings from '../../Constants/Paintings';
 
 export default class GamePanelController {
   private view: GamePanelView;
-  private user: IUser;
   private gameRows: GameRowController[] = [];
   private gameRowActive: GameRowController;
   private resourse: GameResourseController;
   private wordsResponse: IWordResponse[];
   private page: number;
   private rowHeight: number;
+  private userWords: IUserWord[];
 
   constructor(eventDispatcher: EventDispatcher) {
     this.view = new GamePanelView();
     this.resourse = new GameResourseController();
-    eventDispatcher.subscribe.setUser((user: IUser) => {
-      this.user = user;
+    eventDispatcher.subscribe.setUser(() => {
+      DataAdapter.getUserWords().then((userWords: IUserWord[]) => {
+        this.userWords = userWords;
+        this.load();
+      });
+      // setTimeout(() => this.load()); // Ожидание инициализации датаадаптера
     });
     eventDispatcher.subscribe.clickSound(() => {
       this.gameRowActive.soundPlay();
@@ -43,16 +46,40 @@ export default class GamePanelController {
     this.view.onClickReverseColorTextButton(() => this.gameRows.forEach((g) => g.reverseColorText()));
     this.view.onPanelResize(() => this.resize());
     this.resourse.render(this.view.getResoursePanel());
-    this.load();
   }
 
   private load() {
     this.page = 0;
+    // DataAdapter.getUserWords().then((tsest) => {
+    //   debugger
+    // });
     DataAdapter.getWords(0, this.page).then((wordsResponse: IWordResponse[]) => {
       this.calcRowHeigth();
       this.wordsResponse = wordsResponse.filter((o) => o.textExample.split(' ').length < 10);
+
+
+      const userWords = this.getUserPageWords();
+
+      debugger
+
       const isActiveRow = true;
       this.addGameRow(this.wordsResponse[0], isActiveRow);
+      // debugger
+      // DataAdapter.postWord(this.wordsResponse[0].id, {
+      //   difficulty: 'weak',
+      //   optional: {
+      //     page: this.page,
+      //     row: 1,
+      //     success: false,
+      //   },
+      // }).then((testRes) => {
+      //   debugger;
+      //   DataAdapter.getUserWords().then((tsest) => {
+      //     debugger;
+      //   }).catch((e) => {
+      //     debugger;
+      //   });
+      // });
       // this.resultResize();
     }).catch((error) => {
       debugger;
@@ -104,6 +131,12 @@ export default class GamePanelController {
     const painting = paintings[this.page];
     const resultPanelHeight = (painting.height / painting.width) * (this.view.getWidthtGamePanel() - rowNumberWidth);
     this.rowHeight = resultPanelHeight / (rowCount + 1);
+  }
+
+  private getUserPageWords() {
+    return this.userWords.filter((userWord) => userWord.optional.page === this.page)
+      // eslint-disable-next-line no-nested-ternary
+      .sort((a, b) => (a.optional.row > b.optional.row ? 1 : b.optional.row > a.optional.row ? -1 : 0));
   }
 }
 

@@ -274,6 +274,9 @@ input.radio-buttons_button:checked + span {
   width: 100%;
   max-width: 1030px;
 }
+.game-layout_hide {
+  display: none;
+}
 
 .game__result-panel {
   width: 100%;

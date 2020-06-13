@@ -13,6 +13,9 @@ export default class LogInController {
     this.view = new LogInView();
     this.registraion = new RegistrationController(eventDispatcher, () => this.view.show());
     this.eventDispatcherCall = eventDispatcher.call;
+    eventDispatcher.subscribe.setUser(() => {
+      this.view.hide();
+    });
   }
 
   public render(layout: Node) {
@@ -57,7 +60,7 @@ class LogInView {
   private registerButton: HTMLButtonElement;
 
   public render(layout: Node) {
-    this.logIn = renderElement(layout, 'form', 'log-in log-in_hide');
+    this.logIn = renderElement(layout, 'form', 'log-in');
     renderElement(this.logIn, 'h2', 'log-in__header', 'LogIn');
     const labelRegistration = renderElement(this.logIn, 'label', 'log-in-email__description', 'Email');
     this.logInEmail = renderElement(labelRegistration, 'input', 'log-in-email__input');

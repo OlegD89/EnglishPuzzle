@@ -1,7 +1,7 @@
 interface IUser {
   message: string;
   token: string;
-  userId: IUserId;
+  userId: string;
 }
 
 interface IUserId {

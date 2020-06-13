@@ -16,3 +16,32 @@ export default interface IWordResponse {
   textMeaningTranslate: string,
   wordTranslate: string,
 }
+
+interface IGetWord {
+  difficulty: string,
+  id: string,
+  wordId: string,
+}
+
+
+interface IUserWord {
+  difficulty: string,
+  id: string,
+  optional: IOptional,
+  wordId: string,
+}
+
+
+interface IWordPost {
+  difficulty: string,
+  optional: IOptional,
+}
+
+interface IOptional {
+  page: number,
+  row: number,
+  success: boolean
+}
+
+
+export { IWordPost, IGetWord, IUserWord };

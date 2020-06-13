@@ -9,6 +9,9 @@
 .game-layout {
   width: 100%;
   max-width: 1030px;
+  &_hide {
+    display: none;
+  }
 }
 
 .game__result-panel {

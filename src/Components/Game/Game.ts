@@ -16,7 +16,6 @@ export default class GameController {
     this.gamePanel = new GamePanelController(eventDispatcher);
     eventDispatcher.subscribe.setUser((user: IUser) => {
       this.user = user;
-      this.view.show();
     });
   }
 
@@ -25,20 +24,24 @@ export default class GameController {
     this.controls.render(this.view.gameLayout);
     this.gamePanel.render(this.view.gameLayout);
   }
+
+  public show(): void {
+    this.view.show();
+  }
 }
 
 class GameView {
   public gameLayout: HTMLDivElement;
 
   public render(layout: Node) {
-    this.gameLayout = renderElement(layout, 'div', 'game-layout');
+    this.gameLayout = renderElement(layout, 'div', 'game-layout game-layout_hide');
   }
 
   public show() {
-    this.gameLayout.classList.remove('game_hide');
+    this.gameLayout.classList.remove('game-layout_hide');
   }
 
   public hide() {
-    this.gameLayout.classList.add('game_hide');
+    this.gameLayout.classList.add('game-layout_hide');
   }
 }

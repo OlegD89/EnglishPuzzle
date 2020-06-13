@@ -1,22 +1,28 @@
 import { renderElement } from '../../Utils/Utils';
 import { EventDispatcher } from '../EventDispatcher';
-import LogInController from './LogIn';
+// import LogInController from './LogIn';
 
 export default class StartController {
   private view: StartView;
-  private logIn: LogInController;
+  private gameShow: () => void;
+  // private logIn: LogInController;
 
-  constructor(eventDispatcher: EventDispatcher) {
+  constructor(eventDispatcher: EventDispatcher, gameShow: () => void) {
     this.view = new StartView();
-    this.logIn = new LogInController(eventDispatcher);
+    this.gameShow = gameShow;
+    // this.logIn = new LogInController(eventDispatcher);
+    eventDispatcher.subscribe.setUser(() => {
+      this.view.show();
+    });
   }
 
   public render(layout: Node) {
     this.view.render(layout);
-    this.logIn.render(layout);
+    // this.logIn.render(layout);
     this.view.onClickStart(() => {
       this.view.hide();
-      this.logIn.show();
+      this.gameShow();
+      // this.logIn.show();
     });
   }
 }

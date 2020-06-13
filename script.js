@@ -103,6 +103,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Components_EventDispatcher__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./Components/EventDispatcher */ "./src/Components/EventDispatcher.ts");
 /* harmony import */ var _Components_Logger__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./Components/Logger */ "./src/Components/Logger.ts");
 /* harmony import */ var _Components_Game_Game__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./Components/Game/Game */ "./src/Components/Game/Game.ts");
+/* harmony import */ var _Components_Start_LogIn__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./Components/Start/LogIn */ "./src/Components/Start/LogIn.ts");
+
 
 
 
@@ -117,8 +119,9 @@ class App {
         this.settings = new _Components_Settings__WEBPACK_IMPORTED_MODULE_2__["default"](eventDispatcher.subscribe);
         this.logger = new _Components_Logger__WEBPACK_IMPORTED_MODULE_5__["default"](eventDispatcher.subscribe);
         this.layout = new _Components_Layout__WEBPACK_IMPORTED_MODULE_0__["default"](eventDispatcher.subscribe);
-        this.start = new _Components_Start_Start__WEBPACK_IMPORTED_MODULE_1__["default"](eventDispatcher);
+        this.logIn = new _Components_Start_LogIn__WEBPACK_IMPORTED_MODULE_7__["default"](eventDispatcher);
         this.game = new _Components_Game_Game__WEBPACK_IMPORTED_MODULE_6__["default"](eventDispatcher);
+        this.start = new _Components_Start_Start__WEBPACK_IMPORTED_MODULE_1__["default"](eventDispatcher, () => this.game.show());
     }
     Start() {
         const params = this.settings.getSettings();
@@ -126,6 +129,7 @@ class App {
         const page = document.createDocumentFragment();
         const layout = this.layout.render(page);
         this.logger.render(page);
+        this.logIn.render(layout);
         this.start.render(layout);
         this.game.render(layout);
         document.querySelector('body').appendChild(page);
@@ -410,7 +414,6 @@ class GameController {
         this.gamePanel = new _GamePanel__WEBPACK_IMPORTED_MODULE_2__["default"](eventDispatcher);
         eventDispatcher.subscribe.setUser((user) => {
             this.user = user;
-            this.view.show();
         });
     }
     render(layout) {
@@ -418,16 +421,19 @@ class GameController {
         this.controls.render(this.view.gameLayout);
         this.gamePanel.render(this.view.gameLayout);
     }
+    show() {
+        this.view.show();
+    }
 }
 class GameView {
     render(layout) {
-        this.gameLayout = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(layout, 'div', 'game-layout');
+        this.gameLayout = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(layout, 'div', 'game-layout game-layout_hide');
     }
     show() {
-        this.gameLayout.classList.remove('game_hide');
+        this.gameLayout.classList.remove('game-layout_hide');
     }
     hide() {
-        this.gameLayout.classList.add('game_hide');
+        this.gameLayout.classList.add('game-layout_hide');
     }
 }
 
@@ -461,8 +467,11 @@ class GamePanelController {
         this.gameRows = [];
         this.view = new GamePanelView();
         this.resourse = new _GameResource__WEBPACK_IMPORTED_MODULE_3__["default"]();
-        eventDispatcher.subscribe.setUser((user) => {
-            this.user = user;
+        eventDispatcher.subscribe.setUser(() => {
+            _Utils_DataAdapter__WEBPACK_IMPORTED_MODULE_1__["default"].getUserWords().then((userWords) => {
+                this.userWords = userWords;
+                this.load();
+            });
         });
         eventDispatcher.subscribe.clickSound(() => {
             this.gameRowActive.soundPlay();
@@ -482,13 +491,14 @@ class GamePanelController {
         this.view.onClickReverseColorTextButton(() => this.gameRows.forEach((g) => g.reverseColorText()));
         this.view.onPanelResize(() => this.resize());
         this.resourse.render(this.view.getResoursePanel());
-        this.load();
     }
     load() {
         this.page = 0;
         _Utils_DataAdapter__WEBPACK_IMPORTED_MODULE_1__["default"].getWords(0, this.page).then((wordsResponse) => {
             this.calcRowHeigth();
             this.wordsResponse = wordsResponse.filter((o) => o.textExample.split(' ').length < 10);
+            const userWords = this.getUserPageWords();
+            debugger;
             const isActiveRow = true;
             this.addGameRow(this.wordsResponse[0], isActiveRow);
         }).catch((error) => {
@@ -530,6 +540,10 @@ class GamePanelController {
         const painting = _Constants_Paintings__WEBPACK_IMPORTED_MODULE_5__["default"][this.page];
         const resultPanelHeight = (painting.height / painting.width) * (this.view.getWidthtGamePanel() - _Constants_Constants__WEBPACK_IMPORTED_MODULE_4__["rowNumberWidth"]);
         this.rowHeight = resultPanelHeight / (_Constants_Constants__WEBPACK_IMPORTED_MODULE_4__["rowCount"] + 1);
+    }
+    getUserPageWords() {
+        return this.userWords.filter((userWord) => userWord.optional.page === this.page)
+            .sort((a, b) => (a.optional.row > b.optional.row ? 1 : b.optional.row > a.optional.row ? -1 : 0));
     }
 }
 class GamePanelView {
@@ -1023,6 +1037,9 @@ class LogInController {
         this.view = new LogInView();
         this.registraion = new _Registraion__WEBPACK_IMPORTED_MODULE_2__["default"](eventDispatcher, () => this.view.show());
         this.eventDispatcherCall = eventDispatcher.call;
+        eventDispatcher.subscribe.setUser(() => {
+            this.view.hide();
+        });
     }
     render(layout) {
         this.view.render(layout);
@@ -1056,7 +1073,7 @@ class LogInController {
 }
 class LogInView {
     render(layout) {
-        this.logIn = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(layout, 'form', 'log-in log-in_hide');
+        this.logIn = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(layout, 'form', 'log-in');
         Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(this.logIn, 'h2', 'log-in__header', 'LogIn');
         const labelRegistration = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(this.logIn, 'label', 'log-in-email__description', 'Email');
         this.logInEmail = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(labelRegistration, 'input', 'log-in-email__input');
@@ -1119,6 +1136,9 @@ class RegistrationController {
         this.view = new RegistrationView();
         this.eventDispatcherCall = eventDispatcher.call;
         this.logInShow = logInShow;
+        eventDispatcher.subscribe.setUser(() => {
+            this.view.hide();
+        });
     }
     render(layout) {
         this.view.render(layout);
@@ -1206,20 +1226,20 @@ class RegistrationView {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return StartController; });
 /* harmony import */ var _Utils_Utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../Utils/Utils */ "./src/Utils/Utils.ts");
-/* harmony import */ var _LogIn__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./LogIn */ "./src/Components/Start/LogIn.ts");
-
 
 class StartController {
-    constructor(eventDispatcher) {
+    constructor(eventDispatcher, gameShow) {
         this.view = new StartView();
-        this.logIn = new _LogIn__WEBPACK_IMPORTED_MODULE_1__["default"](eventDispatcher);
+        this.gameShow = gameShow;
+        eventDispatcher.subscribe.setUser(() => {
+            this.view.show();
+        });
     }
     render(layout) {
         this.view.render(layout);
-        this.logIn.render(layout);
         this.view.onClickStart(() => {
             this.view.hide();
-            this.logIn.show();
+            this.gameShow();
         });
     }
 }
@@ -1249,7 +1269,7 @@ class StartView {
 /*!************************************!*\
   !*** ./src/Constants/Constants.ts ***!
   \************************************/
-/*! exports provided: fileResource, rowCount, rowNumberWidth */
+/*! exports provided: fileResource, rowCount, rowNumberWidth, backend */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1257,9 +1277,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "fileResource", function() { return fileResource; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "rowCount", function() { return rowCount; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "rowNumberWidth", function() { return rowNumberWidth; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "backend", function() { return backend; });
 const fileResource = 'https://raw.githubusercontent.com/olegd89/rslang-data/master/';
 const rowCount = 10;
 const rowNumberWidth = 20;
+const backend = 'https://afternoon-falls-25894.herokuapp.com';
 
 
 
@@ -1305,6 +1327,7 @@ const paintings = [
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return DataAdapter; });
+/* harmony import */ var _Constants_Constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../Constants/Constants */ "./src/Constants/Constants.ts");
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -1314,16 +1337,21 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+
 class DataAdapter {
     constructor(eventDispatcher) {
         this.eventDispatcherCall = eventDispatcher.call;
+        eventDispatcher.subscribe.setUser((user) => {
+            DataAdapter.token = user.token;
+            DataAdapter.userId = user.userId;
+        });
     }
     setStartParameters(params) {
         this.params = params;
     }
     static registration(event) {
         return __awaiter(this, void 0, void 0, function* () {
-            const rawResponse = yield fetch('https://afternoon-falls-25894.herokuapp.com/users', {
+            const rawResponse = yield fetch(`${_Constants_Constants__WEBPACK_IMPORTED_MODULE_0__["backend"]}/users`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
@@ -1341,7 +1369,7 @@ class DataAdapter {
     }
     static logIn(event) {
         return __awaiter(this, void 0, void 0, function* () {
-            const rawResponse = yield fetch('https://afternoon-falls-25894.herokuapp.com/signin', {
+            const rawResponse = yield fetch(`${_Constants_Constants__WEBPACK_IMPORTED_MODULE_0__["backend"]}/signin`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
@@ -1357,18 +1385,16 @@ class DataAdapter {
             throw Error(errorText);
         });
     }
-    static getUserWords(user) {
+    static getUserWords() {
         return __awaiter(this, void 0, void 0, function* () {
-            debugger;
-            const rawResponse = yield fetch(`https://afternoon-falls-25894.herokuapp.com/users/${user.userId.id}/words`, {
+            const rawResponse = yield fetch(`${_Constants_Constants__WEBPACK_IMPORTED_MODULE_0__["backend"]}/users/${DataAdapter.userId}/words`, {
                 method: 'GET',
                 withCredentials: true,
                 headers: {
-                    Authorization: `Bearer ${user.token}`,
+                    Authorization: `Bearer ${DataAdapter.token}`,
                     Accept: 'application/json',
                 },
             });
-            debugger;
             if (rawResponse.ok) {
                 const content = yield rawResponse.json();
                 return content;
@@ -1379,10 +1405,67 @@ class DataAdapter {
     }
     static getWords(group, page) {
         return __awaiter(this, void 0, void 0, function* () {
-            const rawResponse = yield fetch(`https://afternoon-falls-25894.herokuapp.com/words?group=${group}&page=${page}`);
+            const rawResponse = yield fetch(`${_Constants_Constants__WEBPACK_IMPORTED_MODULE_0__["backend"]}/words?group=${group}&page=${page}`);
             if (rawResponse.ok) {
                 const content = yield rawResponse.json();
                 return content;
+            }
+            const errorText = yield rawResponse.text();
+            throw Error(errorText);
+        });
+    }
+    static postWord(wordId, word) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const rawResponse = yield fetch(`${_Constants_Constants__WEBPACK_IMPORTED_MODULE_0__["backend"]}/users/${DataAdapter.userId}/words/${wordId}`, {
+                method: 'POST',
+                withCredentials: true,
+                headers: {
+                    Authorization: `Bearer ${DataAdapter.token}`,
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(word),
+            });
+            if (rawResponse.ok) {
+                const content = yield rawResponse.json();
+                return content;
+            }
+            const errorText = yield rawResponse.text();
+            throw Error(errorText);
+        });
+    }
+    static putWord(wordId, word) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const rawResponse = yield fetch(`${_Constants_Constants__WEBPACK_IMPORTED_MODULE_0__["backend"]}/users/${DataAdapter.userId}/words/${wordId}`, {
+                method: 'PUT',
+                withCredentials: true,
+                headers: {
+                    Authorization: `Bearer ${DataAdapter.token}`,
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(word),
+            });
+            if (rawResponse.ok) {
+                const content = yield rawResponse.json();
+                return content;
+            }
+            const errorText = yield rawResponse.text();
+            throw Error(errorText);
+        });
+    }
+    static deleteWord(wordId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const rawResponse = yield fetch(`${_Constants_Constants__WEBPACK_IMPORTED_MODULE_0__["backend"]}/users/${DataAdapter.userId}/words/${wordId}`, {
+                method: 'DELETE',
+                withCredentials: true,
+                headers: {
+                    Authorization: `Bearer ${DataAdapter.token}`,
+                    Accept: 'application/json',
+                },
+            });
+            if (rawResponse.ok) {
+                return true;
             }
             const errorText = yield rawResponse.text();
             throw Error(errorText);
