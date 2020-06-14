@@ -40,7 +40,7 @@ export default class GameRowController {
       this.view.addSound(fileResource + this.wordResponse.audioExample);
       this.resource.renderWords(this.words);
     } else {
-      // this.view.addWords(this.words);
+      this.words.forEach((w) => this.view.addWord(w));
     }
   }
 
@@ -81,6 +81,10 @@ export default class GameRowController {
   public changeHeight(rowHeight: number) {
     this.rowHeight = rowHeight;
     this.view.changeHeight(this.getWordElements(), rowHeight, this.getPostitionY());
+  }
+
+  public hideBorders() {
+    GameRowView.hideBorders(this.getWordElements());
   }
 
   private getPostitionY(): string {
@@ -217,5 +221,15 @@ class GameRowView {
       width = this.resultLayout.offsetWidth;
       func();
     });
+  }
+
+  public addWord(word: IWordGame) {
+    const span = renderElement(this.resultLayout, 'span', 'game__word', word.text);
+    span.style.width = `${word.width * 100}%`;
+    word.element = span;
+  }
+
+  public static hideBorders(wordElements: HTMLElement[]) {
+    wordElements.forEach((w) => w.classList.add('game__word_hide'));
   }
 }

@@ -18,18 +18,17 @@ export default class App {
 
   constructor() {
     const eventDispatcher = new EventDispatcher();
-    this.dataAdapter = new DataAdapter(eventDispatcher);
     this.settings = new Settings(eventDispatcher.subscribe);
+    const params = this.settings.getSettings();
+    this.dataAdapter = new DataAdapter(eventDispatcher);
     this.logger = new LoggerController(eventDispatcher.subscribe);
     this.layout = new LayoutController(eventDispatcher.subscribe);
-    this.logIn = new LogInController(eventDispatcher);
+    this.logIn = new LogInController(eventDispatcher, params);
     this.game = new GameController(eventDispatcher);
     this.start = new StartController(eventDispatcher, () => this.game.show());
   }
 
   public Start() {
-    const params = this.settings.getSettings();
-    this.dataAdapter.setStartParameters(params);
     const page = document.createDocumentFragment();
     const layout = this.layout.render(page);
     this.logger.render(page);

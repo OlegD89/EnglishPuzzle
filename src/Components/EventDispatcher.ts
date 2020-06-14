@@ -16,6 +16,7 @@ interface IEventDispatchers {
   clickSound: EventDispatcherBase<void>;
   clickTranslation: EventDispatcherBase<void>;
   clickBackground: EventDispatcherBase<void>;
+  runNextWord: EventDispatcherBase<void>;
 }
 
 class EventDispatcher {
@@ -32,6 +33,7 @@ class EventDispatcher {
       clickSound: new EventDispatcherBase<void>(),
       clickTranslation: new EventDispatcherBase<void>(),
       clickBackground: new EventDispatcherBase<void>(),
+      runNextWord: new EventDispatcherBase<void>(),
     };
     this.call = new EventDispatcherCall(this.eventDispatchers);
     this.subscribe = new EventDispatcherSubscribe(this.eventDispatchers);
@@ -68,6 +70,10 @@ class EventDispatcherCall {
   public clickBackground() {
     this.eventDispatchers.clickBackground.call();
   }
+
+  public runNextWord() {
+    this.eventDispatchers.runNextWord.call();
+  }
 }
 
 class EventDispatcherSubscribe {
@@ -99,6 +105,10 @@ class EventDispatcherSubscribe {
 
   public clickBackground(handler: Handler<void>) {
     this.eventDispatchers.clickBackground.subscribe(handler);
+  }
+
+  public runNextWord(handler: Handler<void>) {
+    this.eventDispatchers.runNextWord.subscribe(handler);
   }
 }
 

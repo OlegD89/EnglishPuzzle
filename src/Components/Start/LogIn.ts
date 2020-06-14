@@ -1,15 +1,18 @@
 import { renderElement, checkPassword, validateEmail } from '../../Utils/Utils';
 import { EventDispatcher, EventDispatcherCall } from '../EventDispatcher';
 import DataAdapter from '../../Utils/DataAdapter';
-import { IUserRegister } from '../../Constants/IUser';
+import IUser, { IUserRegister } from '../../Constants/IUser';
 import RegistrationController from './Registraion';
+import { ISettingsParams } from '../Settings';
 
 export default class LogInController {
   private view: LogInView;
   private eventDispatcherCall: EventDispatcherCall;
   private registraion: RegistrationController;
+  private params: ISettingsParams;
 
-  constructor(eventDispatcher: EventDispatcher) {
+  constructor(eventDispatcher: EventDispatcher, params: ISettingsParams) {
+    this.params = params;
     this.view = new LogInView();
     this.registraion = new RegistrationController(eventDispatcher, () => this.view.show());
     this.eventDispatcherCall = eventDispatcher.call;
@@ -45,6 +48,23 @@ export default class LogInController {
         });
       }
     });
+
+    if (this.params.userId) {
+      this.view.hide();
+      setTimeout(() => {
+        DataAdapter.getUser(this.params).then(() => {
+          this.eventDispatcherCall.logger('Welcome');
+          this.eventDispatcherCall.setUser({
+            token: this.params.token,
+            userId: this.params.userId,
+          } as IUser);
+        }).catch((error) => {
+          this.view.showError(error.message);
+          // this.eventDispatcherCall.logger({ text: error, isError: true });
+          this.view.show();
+        });
+      });
+    }
   }
 
   public show() {

@@ -27,6 +27,7 @@ export default class GameController {
 
   public show(): void {
     this.view.show();
+    this.gamePanel.show();
   }
 }
 

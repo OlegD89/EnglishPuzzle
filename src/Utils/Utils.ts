@@ -47,6 +47,14 @@ const shuffle = function shuffle(arrayInput: any[]) {
   return array;
 };
 
+const arrayPopByKey = function arrayPopByKey(array, key, value) {
+  const elementIndex = array.findIndex((o) => o[key] === value);
+  const element = array[elementIndex];
+  array.splice(elementIndex, 1);
+  return element;
+};
+
 export {
-  renderElement, getDistinct, validateURL, randomInteger, checkPassword, validateEmail, shuffle,
+  renderElement, getDistinct, validateURL, randomInteger, checkPassword, validateEmail,
+  shuffle, arrayPopByKey,
 };

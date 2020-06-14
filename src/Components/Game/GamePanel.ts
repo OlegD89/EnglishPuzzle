@@ -1,7 +1,7 @@
-import { EventDispatcher } from '../EventDispatcher';
-import { renderElement } from '../../Utils/Utils';
+import { EventDispatcher, EventDispatcherCall } from '../EventDispatcher';
+import { renderElement, arrayPopByKey, shuffle } from '../../Utils/Utils';
 import DataAdapter from '../../Utils/DataAdapter';
-import IWordResponse, { IGetWord, IUserWord } from '../../Constants/IWord';
+import IWordResponse, { IUserWord } from '../../Constants/IWord';
 import GameRowController from './GameRow';
 import GameResourseController from './GameResource';
 import { rowCount, rowNumberWidth } from '../../Constants/Constants';
@@ -16,16 +16,21 @@ export default class GamePanelController {
   private page: number;
   private rowHeight: number;
   private userWords: IUserWord[];
+  private eventDispatcherCall: EventDispatcherCall;
 
   constructor(eventDispatcher: EventDispatcher) {
     this.view = new GamePanelView();
     this.resourse = new GameResourseController();
+    this.eventDispatcherCall = eventDispatcher.call;
     eventDispatcher.subscribe.setUser(() => {
       DataAdapter.getUserWords().then((userWords: IUserWord[]) => {
         this.userWords = userWords;
+        // userWords.forEach((w) => {
+        //   if (!w.optional.success) DataAdapter.deleteWord(w.wordId);
+        // });
         this.load();
+        // window.document.gete
       });
-      // setTimeout(() => this.load()); // Ожидание инициализации датаадаптера
     });
     eventDispatcher.subscribe.clickSound(() => {
       this.gameRowActive.soundPlay();
@@ -50,20 +55,30 @@ export default class GamePanelController {
 
   private load() {
     this.page = 0;
-    // DataAdapter.getUserWords().then((tsest) => {
-    //   debugger
-    // });
     DataAdapter.getWords(0, this.page).then((wordsResponse: IWordResponse[]) => {
       this.calcRowHeigth();
-      this.wordsResponse = wordsResponse.filter((o) => o.textExample.split(' ').length < 10);
-
+      this.wordsResponse = shuffle(wordsResponse.filter((o) => o.textExample.split(' ').length < 10));
 
       const userWords = this.getUserPageWords();
 
-      debugger
+      let lastWordIsSuccess = false;
+      userWords.forEach((userWord: IUserWord) => {
+        const wordResponse = arrayPopByKey(this.wordsResponse, 'id', userWord.wordId);
+        lastWordIsSuccess = userWord.optional.success;
+        this.addGameRow(wordResponse, !userWord.optional.success);
+      });
 
-      const isActiveRow = true;
-      this.addGameRow(this.wordsResponse[0], isActiveRow);
+      // const userWord = userWords[1];
+      // userWord.optional.success = true;
+      // DataAdapter.putWord(userWord.wordId, {
+      //   difficulty: userWord.difficulty,
+      //   optional: userWord.optional,
+      // });
+
+      if (lastWordIsSuccess) {
+        this.addGameRowAndSave(this.wordsResponse[0], true);
+      }
+
       // debugger
       // DataAdapter.postWord(this.wordsResponse[0].id, {
       //   difficulty: 'weak',
@@ -82,6 +97,42 @@ export default class GamePanelController {
       // });
       // this.resultResize();
     }).catch((error) => {
+      debugger;
+    });
+  }
+
+  public show() {
+    const time = this.userWords && this.gameRows.length >= this.getUserPageWords().length ? 0 : 500;
+    setTimeout(() => {
+      this.resize();
+      this.gameRows.forEach((gr) => {
+        if (gr !== this.gameRowActive) gr.renderBackgroundImageWords();
+      });
+    }, time);
+  }
+
+  private addGameRowAndSave(wordResponse: IWordResponse, isActiveRow: boolean) {
+    const userWords = this.getUserPageWords();
+    if (userWords.length !== 0 && !userWords[userWords.length - 1].optional.success) {
+      const userWord = userWords[userWords.length - 1];
+      userWord.optional.success = true;
+      DataAdapter.putWord(userWord.wordId, {
+        difficulty: userWord.difficulty,
+        optional: userWord.optional,
+      });
+    }
+    DataAdapter.postWord(wordResponse.id, {
+      difficulty: 'weak',
+      optional: {
+        page: this.page,
+        row: this.gameRows.length + 1,
+        success: false,
+      },
+    }).then((newWord: IUserWord) => {
+      this.userWords.push(newWord);
+      this.addGameRow(wordResponse, isActiveRow);
+      this.eventDispatcherCall.runNextWord();
+    }).catch(() => {
       debugger;
     });
   }
@@ -111,9 +162,12 @@ export default class GamePanelController {
     this.gameRowActive.deactivate();
     this.gameRowActive = undefined;
     if (this.gameRows.length !== rowCount) {
-      this.addGameRow(this.wordsResponse[this.gameRows.length], true);
+      this.addGameRowAndSave(this.wordsResponse[this.gameRows.length], true);
     } else {
-      // Скрыть границы и показать информацию по картине
+      // TODO Скрыть границы и показать информацию по картине
+      this.view.showResult();
+      this.gameRows.forEach((gr) => gr.hideBorders());
+      // this.view.showInfo();
     }
   }
 
@@ -148,6 +202,7 @@ class GamePanelView {
   private checkButton: HTMLButtonElement;
   private сontinueButton: HTMLButtonElement;
   private reverseColorTextButton: HTMLButtonElement;
+  private resultButton: HTMLButtonElement;
 
   public render(layout: Node) {
     this.translation = renderElement(layout, 'span', 'game__result-translate');
@@ -160,6 +215,8 @@ class GamePanelView {
       'game__result-button result-button__сontinue game__result-button_hide', 'Continue');
     this.checkButton = renderElement(resultButtons, 'button',
       'game__result-button result-button__check', 'Check');
+    this.resultButton = renderElement(resultButtons, 'button',
+      'game__result-button result-button__result game__result-button_hide', 'Result');
     this.reverseColorTextButton = renderElement(resultButtons, 'button',
       'game__result-button result-button__helper', 'Reverse color text');
   }
@@ -198,6 +255,16 @@ class GamePanelView {
     this.surrenderButton.classList.remove('game__result-button_hide');
     this.checkButton.classList.remove('game__result-button_hide');
     this.сontinueButton.classList.add('game__result-button_hide');
+  }
+
+  public showResult() {
+    this.showContinue();
+    this.resultButton.classList.remove('game__result-button_hide');
+  }
+
+  public hideResult() {
+    this.hideContinue();
+    this.resultButton.classList.add('game__result-button_hide');
   }
 
   public onClickReverseColorTextButton(func: () => void) {

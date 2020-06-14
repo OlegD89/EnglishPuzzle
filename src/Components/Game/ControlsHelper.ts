@@ -8,6 +8,7 @@ export default class ControlsHelperController {
   constructor(eventDispatcher: EventDispatcher) {
     this.view = new ControlsHelperView();
     this.eventDispatcherCall = eventDispatcher.call;
+    eventDispatcher.subscribe.runNextWord(() => this.view.deactivate());
   }
 
   public render(layout: Node) {
@@ -57,5 +58,11 @@ class ControlsHelperView {
       this.background.classList.add('button-icon_active');
       func();
     };
+  }
+
+  public deactivate() {
+    this.speak.classList.remove('button-icon_active');
+    this.translation.classList.remove('button-icon_active');
+    this.background.classList.remove('button-icon_active');
   }
 }

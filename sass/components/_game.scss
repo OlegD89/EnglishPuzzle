@@ -60,7 +60,7 @@
 span.game__word {
   color: #000000;
   outline: 5px solid #6466f0;
-  height: 100%;
+  height: calc(100% - 5px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -76,6 +76,7 @@ span.game__word {
     color: #ffffff;
   }
   &_hide {
+    height: 100%;
     color: rgba(0, 0, 0, 0);
     outline: none;
   }

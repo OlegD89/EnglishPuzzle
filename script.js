@@ -115,17 +115,16 @@ __webpack_require__.r(__webpack_exports__);
 class App {
     constructor() {
         const eventDispatcher = new _Components_EventDispatcher__WEBPACK_IMPORTED_MODULE_4__["EventDispatcher"]();
-        this.dataAdapter = new _Utils_DataAdapter__WEBPACK_IMPORTED_MODULE_3__["default"](eventDispatcher);
         this.settings = new _Components_Settings__WEBPACK_IMPORTED_MODULE_2__["default"](eventDispatcher.subscribe);
+        const params = this.settings.getSettings();
+        this.dataAdapter = new _Utils_DataAdapter__WEBPACK_IMPORTED_MODULE_3__["default"](eventDispatcher);
         this.logger = new _Components_Logger__WEBPACK_IMPORTED_MODULE_5__["default"](eventDispatcher.subscribe);
         this.layout = new _Components_Layout__WEBPACK_IMPORTED_MODULE_0__["default"](eventDispatcher.subscribe);
-        this.logIn = new _Components_Start_LogIn__WEBPACK_IMPORTED_MODULE_7__["default"](eventDispatcher);
+        this.logIn = new _Components_Start_LogIn__WEBPACK_IMPORTED_MODULE_7__["default"](eventDispatcher, params);
         this.game = new _Components_Game_Game__WEBPACK_IMPORTED_MODULE_6__["default"](eventDispatcher);
         this.start = new _Components_Start_Start__WEBPACK_IMPORTED_MODULE_1__["default"](eventDispatcher, () => this.game.show());
     }
     Start() {
-        const params = this.settings.getSettings();
-        this.dataAdapter.setStartParameters(params);
         const page = document.createDocumentFragment();
         const layout = this.layout.render(page);
         this.logger.render(page);
@@ -160,6 +159,7 @@ class EventDispatcher {
             clickSound: new EventDispatcherBase(),
             clickTranslation: new EventDispatcherBase(),
             clickBackground: new EventDispatcherBase(),
+            runNextWord: new EventDispatcherBase(),
         };
         this.call = new EventDispatcherCall(this.eventDispatchers);
         this.subscribe = new EventDispatcherSubscribe(this.eventDispatchers);
@@ -187,6 +187,9 @@ class EventDispatcherCall {
     clickBackground() {
         this.eventDispatchers.clickBackground.call();
     }
+    runNextWord() {
+        this.eventDispatchers.runNextWord.call();
+    }
 }
 class EventDispatcherSubscribe {
     constructor(eventDispatchers) {
@@ -209,6 +212,9 @@ class EventDispatcherSubscribe {
     }
     clickBackground(handler) {
         this.eventDispatchers.clickBackground.subscribe(handler);
+    }
+    runNextWord(handler) {
+        this.eventDispatchers.runNextWord.subscribe(handler);
     }
 }
 class EventDispatcherBase {
@@ -284,6 +290,7 @@ class ControlsHelperController {
     constructor(eventDispatcher) {
         this.view = new ControlsHelperView();
         this.eventDispatcherCall = eventDispatcher.call;
+        eventDispatcher.subscribe.runNextWord(() => this.view.deactivate());
     }
     render(layout) {
         this.view.render(layout);
@@ -324,6 +331,11 @@ class ControlsHelperView {
             this.background.classList.add('button-icon_active');
             func();
         };
+    }
+    deactivate() {
+        this.speak.classList.remove('button-icon_active');
+        this.translation.classList.remove('button-icon_active');
+        this.background.classList.remove('button-icon_active');
     }
 }
 
@@ -423,6 +435,7 @@ class GameController {
     }
     show() {
         this.view.show();
+        this.gamePanel.show();
     }
 }
 class GameView {
@@ -467,6 +480,7 @@ class GamePanelController {
         this.gameRows = [];
         this.view = new GamePanelView();
         this.resourse = new _GameResource__WEBPACK_IMPORTED_MODULE_3__["default"]();
+        this.eventDispatcherCall = eventDispatcher.call;
         eventDispatcher.subscribe.setUser(() => {
             _Utils_DataAdapter__WEBPACK_IMPORTED_MODULE_1__["default"].getUserWords().then((userWords) => {
                 this.userWords = userWords;
@@ -496,12 +510,53 @@ class GamePanelController {
         this.page = 0;
         _Utils_DataAdapter__WEBPACK_IMPORTED_MODULE_1__["default"].getWords(0, this.page).then((wordsResponse) => {
             this.calcRowHeigth();
-            this.wordsResponse = wordsResponse.filter((o) => o.textExample.split(' ').length < 10);
+            this.wordsResponse = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["shuffle"])(wordsResponse.filter((o) => o.textExample.split(' ').length < 10));
             const userWords = this.getUserPageWords();
-            debugger;
-            const isActiveRow = true;
-            this.addGameRow(this.wordsResponse[0], isActiveRow);
+            let lastWordIsSuccess = false;
+            userWords.forEach((userWord) => {
+                const wordResponse = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["arrayPopByKey"])(this.wordsResponse, 'id', userWord.wordId);
+                lastWordIsSuccess = userWord.optional.success;
+                this.addGameRow(wordResponse, !userWord.optional.success);
+            });
+            if (lastWordIsSuccess) {
+                this.addGameRowAndSave(this.wordsResponse[0], true);
+            }
         }).catch((error) => {
+            debugger;
+        });
+    }
+    show() {
+        const time = this.userWords && this.gameRows.length >= this.getUserPageWords().length ? 0 : 500;
+        setTimeout(() => {
+            this.resize();
+            this.gameRows.forEach((gr) => {
+                if (gr !== this.gameRowActive)
+                    gr.renderBackgroundImageWords();
+            });
+        }, time);
+    }
+    addGameRowAndSave(wordResponse, isActiveRow) {
+        const userWords = this.getUserPageWords();
+        if (userWords.length !== 0 && !userWords[userWords.length - 1].optional.success) {
+            const userWord = userWords[userWords.length - 1];
+            userWord.optional.success = true;
+            _Utils_DataAdapter__WEBPACK_IMPORTED_MODULE_1__["default"].putWord(userWord.wordId, {
+                difficulty: userWord.difficulty,
+                optional: userWord.optional,
+            });
+        }
+        _Utils_DataAdapter__WEBPACK_IMPORTED_MODULE_1__["default"].postWord(wordResponse.id, {
+            difficulty: 'weak',
+            optional: {
+                page: this.page,
+                row: this.gameRows.length + 1,
+                success: false,
+            },
+        }).then((newWord) => {
+            this.userWords.push(newWord);
+            this.addGameRow(wordResponse, isActiveRow);
+            this.eventDispatcherCall.runNextWord();
+        }).catch(() => {
             debugger;
         });
     }
@@ -527,9 +582,11 @@ class GamePanelController {
         this.gameRowActive.deactivate();
         this.gameRowActive = undefined;
         if (this.gameRows.length !== _Constants_Constants__WEBPACK_IMPORTED_MODULE_4__["rowCount"]) {
-            this.addGameRow(this.wordsResponse[this.gameRows.length], true);
+            this.addGameRowAndSave(this.wordsResponse[this.gameRows.length], true);
         }
         else {
+            this.view.showResult();
+            this.gameRows.forEach((gr) => gr.hideBorders());
         }
     }
     resize() {
@@ -555,6 +612,7 @@ class GamePanelView {
         this.surrenderButton = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultButtons, 'button', 'game__result-button result-button__surrender', 'I don\'t know');
         this.сontinueButton = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultButtons, 'button', 'game__result-button result-button__сontinue game__result-button_hide', 'Continue');
         this.checkButton = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultButtons, 'button', 'game__result-button result-button__check', 'Check');
+        this.resultButton = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultButtons, 'button', 'game__result-button result-button__result game__result-button_hide', 'Result');
         this.reverseColorTextButton = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultButtons, 'button', 'game__result-button result-button__helper', 'Reverse color text');
     }
     getGamePanel() {
@@ -584,6 +642,14 @@ class GamePanelView {
         this.surrenderButton.classList.remove('game__result-button_hide');
         this.checkButton.classList.remove('game__result-button_hide');
         this.сontinueButton.classList.add('game__result-button_hide');
+    }
+    showResult() {
+        this.showContinue();
+        this.resultButton.classList.remove('game__result-button_hide');
+    }
+    hideResult() {
+        this.hideContinue();
+        this.resultButton.classList.add('game__result-button_hide');
     }
     onClickReverseColorTextButton(func) {
         this.reverseColorTextButton.onclick = func;
@@ -710,6 +776,7 @@ class GameRowController {
             this.resource.renderWords(this.words);
         }
         else {
+            this.words.forEach((w) => this.view.addWord(w));
         }
     }
     reverseColorText() {
@@ -741,6 +808,9 @@ class GameRowController {
     changeHeight(rowHeight) {
         this.rowHeight = rowHeight;
         this.view.changeHeight(this.getWordElements(), rowHeight, this.getPostitionY());
+    }
+    hideBorders() {
+        GameRowView.hideBorders(this.getWordElements());
     }
     getPostitionY() {
         return `-${this.row * this.rowHeight}px`;
@@ -849,6 +919,14 @@ class GameRowView {
             width = this.resultLayout.offsetWidth;
             func();
         });
+    }
+    addWord(word) {
+        const span = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(this.resultLayout, 'span', 'game__word', word.text);
+        span.style.width = `${word.width * 100}%`;
+        word.element = span;
+    }
+    static hideBorders(wordElements) {
+        wordElements.forEach((w) => w.classList.add('game__word_hide'));
     }
 }
 
@@ -994,22 +1072,30 @@ __webpack_require__.r(__webpack_exports__);
 class Settings {
     constructor(eventDispatcherSubscribe) {
         this.settings = Settings.loadSettings() || Settings.defaultSettings();
+        eventDispatcherSubscribe.setUser((user) => {
+            this.settings.userId = user.userId;
+            this.settings.token = user.token;
+            this.saveSettings();
+        });
     }
     getSettings() {
         return this.settings;
     }
-    static saveSettings(settings) {
-        localStorage.setItem('weather-dos', JSON.stringify(settings));
+    saveSettings() {
+        localStorage.setItem('puzzle-dos', JSON.stringify(this.settings));
     }
     static loadSettings() {
-        const settings = localStorage.getItem('weather-dos');
+        const settings = localStorage.getItem('puzzle-dos');
         if (settings) {
             return JSON.parse(settings);
         }
         return null;
     }
     static defaultSettings() {
-        return {};
+        return {
+            userId: undefined,
+            token: undefined,
+        };
     }
 }
 
@@ -1033,7 +1119,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class LogInController {
-    constructor(eventDispatcher) {
+    constructor(eventDispatcher, params) {
+        this.params = params;
         this.view = new LogInView();
         this.registraion = new _Registraion__WEBPACK_IMPORTED_MODULE_2__["default"](eventDispatcher, () => this.view.show());
         this.eventDispatcherCall = eventDispatcher.call;
@@ -1066,6 +1153,21 @@ class LogInController {
                 });
             }
         });
+        if (this.params.userId) {
+            this.view.hide();
+            setTimeout(() => {
+                _Utils_DataAdapter__WEBPACK_IMPORTED_MODULE_1__["default"].getUser(this.params).then(() => {
+                    this.eventDispatcherCall.logger('Welcome');
+                    this.eventDispatcherCall.setUser({
+                        token: this.params.token,
+                        userId: this.params.userId,
+                    });
+                }).catch((error) => {
+                    this.view.showError(error.message);
+                    this.view.show();
+                });
+            });
+        }
     }
     show() {
         this.view.show();
@@ -1385,6 +1487,24 @@ class DataAdapter {
             throw Error(errorText);
         });
     }
+    static getUser(params) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const rawResponse = yield fetch(`${_Constants_Constants__WEBPACK_IMPORTED_MODULE_0__["backend"]}/users/${params.userId}`, {
+                method: 'GET',
+                withCredentials: true,
+                headers: {
+                    Authorization: `Bearer ${params.token}`,
+                    Accept: 'application/json',
+                },
+            });
+            if (rawResponse.ok) {
+                const content = yield rawResponse.json();
+                return content;
+            }
+            const errorText = yield rawResponse.text();
+            throw Error(errorText);
+        });
+    }
     static getUserWords() {
         return __awaiter(this, void 0, void 0, function* () {
             const rawResponse = yield fetch(`${_Constants_Constants__WEBPACK_IMPORTED_MODULE_0__["backend"]}/users/${DataAdapter.userId}/words`, {
@@ -1480,7 +1600,7 @@ class DataAdapter {
 /*!****************************!*\
   !*** ./src/Utils/Utils.ts ***!
   \****************************/
-/*! exports provided: renderElement, getDistinct, validateURL, randomInteger, checkPassword, validateEmail, shuffle */
+/*! exports provided: renderElement, getDistinct, validateURL, randomInteger, checkPassword, validateEmail, shuffle, arrayPopByKey */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1492,6 +1612,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "checkPassword", function() { return checkPassword; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "validateEmail", function() { return validateEmail; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "shuffle", function() { return shuffle; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "arrayPopByKey", function() { return arrayPopByKey; });
 const renderElement = function renderElement(layout, type, classes, text = undefined) {
     const element = document.createElement(type);
     if (classes)
@@ -1532,6 +1653,12 @@ const shuffle = function shuffle(arrayInput) {
         [array[i], array[j]] = [array[j], array[i]];
     }
     return array;
+};
+const arrayPopByKey = function arrayPopByKey(array, key, value) {
+    const elementIndex = array.findIndex((o) => o[key] === value);
+    const element = array[elementIndex];
+    array.splice(elementIndex, 1);
+    return element;
 };
 
 

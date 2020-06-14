@@ -58,6 +58,24 @@ export default class DataAdapter {
     throw Error(errorText);
   }
 
+  public static async getUser(params: ISettingsParams) {
+    const rawResponse = await fetch(`${backend}/users/${params.userId}`, {
+      method: 'GET',
+      withCredentials: true,
+      headers: {
+        Authorization: `Bearer ${params.token}`,
+        Accept: 'application/json',
+      },
+    } as any);
+
+    if (rawResponse.ok) {
+      const content = await rawResponse.json();
+      return content;
+    }
+    const errorText = await rawResponse.text();
+    throw Error(errorText);
+  }
+
   public static async getUserWords() {
     const rawResponse = await fetch(`${backend}/users/${DataAdapter.userId}/words`, {
       method: 'GET',
@@ -97,7 +115,7 @@ export default class DataAdapter {
       body: JSON.stringify(word),
     } as any);
     if (rawResponse.ok) {
-      const content: IWordResponse[] = await rawResponse.json();
+      const content: IUserWord = await rawResponse.json();
       return content;
     }
     const errorText = await rawResponse.text();
