@@ -38,6 +38,9 @@ export default class GamePanelController {
     eventDispatcher.subscribe.clickTranslation(() => {
       this.view.showTranslation(this.gameRowActive.getTextExampleTranslate());
     });
+    eventDispatcher.subscribe.runNextWord(() => {
+      this.view.showTranslation('');
+    });
     eventDispatcher.subscribe.clickBackground(() => {
       this.gameRows.forEach((g) => g.renderBackgroundImageWords());
     });
@@ -75,7 +78,7 @@ export default class GamePanelController {
 
       // this.resultResize();
     }).catch((error) => {
-      debugger;
+      this.eventDispatcherCall.logger(error.message, true);
     });
   }
 
@@ -110,8 +113,8 @@ export default class GamePanelController {
       this.userWords.push(newWord);
       this.addGameRow(wordResponse, isActiveRow);
       this.eventDispatcherCall.runNextWord();
-    }).catch(() => {
-      debugger;
+    }).catch((error) => {
+      this.eventDispatcherCall.logger(error.message, true);
     });
   }
 
@@ -151,7 +154,6 @@ export default class GamePanelController {
         index: 0,
         element: undefined,
       }]);
-      // this.view.showInfo();
     }
   }
 
