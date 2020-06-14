@@ -16,8 +16,12 @@ export default class LogInController {
     this.view = new LogInView();
     this.registraion = new RegistrationController(eventDispatcher, () => this.view.show());
     this.eventDispatcherCall = eventDispatcher.call;
-    eventDispatcher.subscribe.setUser(() => {
-      this.view.hide();
+    eventDispatcher.subscribe.setUser((user) => {
+      if (user.userId) {
+        this.view.hide();
+      } else {
+        this.view.show();
+      }
     });
   }
 
@@ -42,9 +46,9 @@ export default class LogInController {
           this.eventDispatcherCall.logger('Welcome');
           this.eventDispatcherCall.setUser(user);
           this.view.hide();
+          this.view.hideError();
         }).catch((error) => {
           this.view.showError(error.message);
-          // this.eventDispatcherCall.logger({ text: error, isError: true });
         });
       }
     });
@@ -60,7 +64,6 @@ export default class LogInController {
           } as IUser);
         }).catch((error) => {
           this.view.showError(error.message);
-          // this.eventDispatcherCall.logger({ text: error, isError: true });
           this.view.show();
         });
       });

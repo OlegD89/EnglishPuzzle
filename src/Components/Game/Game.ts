@@ -1,12 +1,10 @@
 import { EventDispatcher } from '../EventDispatcher';
 import { renderElement } from '../../Utils/Utils';
-import IUser from '../../Constants/IUser';
 import ControlsController from './Controls';
 import GamePanelController from './GamePanel';
 
 export default class GameController {
   private view: GameView;
-  private user: IUser;
   private controls: ControlsController;
   private gamePanel: GamePanelController;
 
@@ -14,9 +12,6 @@ export default class GameController {
     this.view = new GameView();
     this.controls = new ControlsController(eventDispatcher);
     this.gamePanel = new GamePanelController(eventDispatcher);
-    eventDispatcher.subscribe.setUser((user: IUser) => {
-      this.user = user;
-    });
   }
 
   public render(layout: Node) {
@@ -25,9 +20,13 @@ export default class GameController {
     this.gamePanel.render(this.view.gameLayout);
   }
 
-  public show(): void {
-    this.view.show();
-    this.gamePanel.show();
+  public show(isShow: boolean = true) {
+    if (isShow) {
+      this.view.show();
+      this.gamePanel.show();
+    } else {
+      this.view.hide();
+    }
   }
 }
 

@@ -122,7 +122,7 @@ class App {
         this.layout = new _Components_Layout__WEBPACK_IMPORTED_MODULE_0__["default"](eventDispatcher.subscribe);
         this.logIn = new _Components_Start_LogIn__WEBPACK_IMPORTED_MODULE_7__["default"](eventDispatcher, params);
         this.game = new _Components_Game_Game__WEBPACK_IMPORTED_MODULE_6__["default"](eventDispatcher);
-        this.start = new _Components_Start_Start__WEBPACK_IMPORTED_MODULE_1__["default"](eventDispatcher, () => this.game.show());
+        this.start = new _Components_Start_Start__WEBPACK_IMPORTED_MODULE_1__["default"](eventDispatcher, (isShow) => this.game.show(isShow));
     }
     Start() {
         const page = document.createDocumentFragment();
@@ -132,6 +132,8 @@ class App {
         this.start.render(layout);
         this.game.render(layout);
         document.querySelector('body').appendChild(page);
+        console.log(`Реализовал не весь необходимый функционал, но сколько то баллов это стоит
+    Статистика не реализована. Реализован только один уровень.`);
     }
 }
 
@@ -357,10 +359,15 @@ __webpack_require__.r(__webpack_exports__);
 class ControlsLevelController {
     constructor(eventDispatcher) {
         this.view = new ControlsLevelView();
+        this.eventDispatcherCall = eventDispatcher.call;
     }
     render(layout) {
+        this.view.renderLogOut(layout);
         this.view.renderLevel(layout, ['1', '2', '3'], '1');
         this.view.renderPage(layout, ['1', '2', '3'], '1');
+        this.view.onClickLogOut(() => {
+            this.eventDispatcherCall.setUser({ userId: undefined, token: undefined, message: undefined });
+        });
         this.view.onChangeLevel((index) => {
             debugger;
         });
@@ -370,6 +377,9 @@ class ControlsLevelController {
     }
 }
 class ControlsLevelView {
+    renderLogOut(layout) {
+        this.logOut = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(layout, 'button', 'log-out', 'LogOut');
+    }
     renderLevel(layout, values, valueChecked) {
         const selectLevelDesc = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(layout, 'label', 'droplist-label', 'Level');
         this.selectLevel = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(selectLevelDesc, 'select', 'droplist droplist-level');
@@ -387,6 +397,11 @@ class ControlsLevelView {
             if (value === valueChecked)
                 element.selected = true;
         });
+    }
+    onClickLogOut(func) {
+        this.logOut.onclick = () => {
+            func();
+        };
     }
     onChangeLevel(func) {
         this.selectLevel.onchange = () => {
@@ -424,18 +439,20 @@ class GameController {
         this.view = new GameView();
         this.controls = new _Controls__WEBPACK_IMPORTED_MODULE_1__["default"](eventDispatcher);
         this.gamePanel = new _GamePanel__WEBPACK_IMPORTED_MODULE_2__["default"](eventDispatcher);
-        eventDispatcher.subscribe.setUser((user) => {
-            this.user = user;
-        });
     }
     render(layout) {
         this.view.render(layout);
         this.controls.render(this.view.gameLayout);
         this.gamePanel.render(this.view.gameLayout);
     }
-    show() {
-        this.view.show();
-        this.gamePanel.show();
+    show(isShow = true) {
+        if (isShow) {
+            this.view.show();
+            this.gamePanel.show();
+        }
+        else {
+            this.view.hide();
+        }
     }
 }
 class GameView {
@@ -481,11 +498,21 @@ class GamePanelController {
         this.view = new GamePanelView();
         this.resourse = new _GameResource__WEBPACK_IMPORTED_MODULE_3__["default"]();
         this.eventDispatcherCall = eventDispatcher.call;
-        eventDispatcher.subscribe.setUser(() => {
-            _Utils_DataAdapter__WEBPACK_IMPORTED_MODULE_1__["default"].getUserWords().then((userWords) => {
-                this.userWords = userWords;
-                this.load();
-            });
+        eventDispatcher.subscribe.setUser((user) => {
+            if (user.userId) {
+                _Utils_DataAdapter__WEBPACK_IMPORTED_MODULE_1__["default"].getUserWords().then((userWords) => {
+                    this.userWords = userWords;
+                    this.load();
+                });
+            }
+            else {
+                this.userWords = undefined;
+                this.wordsResponse = undefined;
+                this.gameRows = [];
+                this.gameRowActive = undefined;
+                this.view.clearGamePanel();
+                this.resourse.clear();
+            }
         });
         eventDispatcher.subscribe.clickSound(() => {
             this.gameRowActive.soundPlay();
@@ -618,6 +645,9 @@ class GamePanelView {
     getGamePanel() {
         return this.resultPanel;
     }
+    clearGamePanel() {
+        this.resultPanel.innerHTML = '';
+    }
     getResoursePanel() {
         return this.resoursePanel;
     }
@@ -693,6 +723,9 @@ class GameResourseController {
         this.view.render(resoursePanel);
         _GameStorage__WEBPACK_IMPORTED_MODULE_1__["default"].wordToResourse = (element) => this.view.appendWordElement(element);
     }
+    clear() {
+        this.view.clear();
+    }
     renderWords(words) {
         Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["shuffle"])(words).forEach((word) => this.view.addWord(word));
     }
@@ -719,6 +752,9 @@ class GameResourseView {
                 this.resourseLayout.insertBefore(source, current);
             }
         };
+    }
+    clear() {
+        this.resourseLayout.innerHTML = '';
     }
     appendWordElement(element) {
         this.resourseLayout.append(element);
@@ -1124,8 +1160,13 @@ class LogInController {
         this.view = new LogInView();
         this.registraion = new _Registraion__WEBPACK_IMPORTED_MODULE_2__["default"](eventDispatcher, () => this.view.show());
         this.eventDispatcherCall = eventDispatcher.call;
-        eventDispatcher.subscribe.setUser(() => {
-            this.view.hide();
+        eventDispatcher.subscribe.setUser((user) => {
+            if (user.userId) {
+                this.view.hide();
+            }
+            else {
+                this.view.show();
+            }
         });
     }
     render(layout) {
@@ -1148,6 +1189,7 @@ class LogInController {
                     this.eventDispatcherCall.logger('Welcome');
                     this.eventDispatcherCall.setUser(user);
                     this.view.hide();
+                    this.view.hideError();
                 }).catch((error) => {
                     this.view.showError(error.message);
                 });
@@ -1333,16 +1375,28 @@ class StartController {
     constructor(eventDispatcher, gameShow) {
         this.view = new StartView();
         this.gameShow = gameShow;
-        eventDispatcher.subscribe.setUser(() => {
-            this.view.show();
+        this.eventDispatcherCall = eventDispatcher.call;
+        eventDispatcher.subscribe.setUser((user) => {
+            if (user.userId) {
+                this.view.show();
+            }
+            else {
+                this.view.hide();
+                this.gameShow(false);
+            }
         });
     }
     render(layout) {
         this.view.render(layout);
         this.view.onClickStart(() => {
             this.view.hide();
-            this.gameShow();
+            this.gameShow(true);
         });
+        this.view.onClickLogOut(() => this.eventDispatcherCall.setUser({
+            message: undefined,
+            token: undefined,
+            userId: undefined,
+        }));
     }
 }
 class StartView {
@@ -1352,9 +1406,13 @@ class StartView {
         Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(this.startPage, 'p', 'start-page__description', 'Click on words, collect phrases');
         Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(this.startPage, 'p', 'start-page__description', 'Words can be drag and drop. Select tooltips in the menu');
         this.button = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(this.startPage, 'button', 'start-page__button', 'Start');
+        this.logOut = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(this.startPage, 'button', 'start-page__button start-page__logOut', 'LogOut');
     }
     onClickStart(func) {
         this.button.onclick = () => { func(); };
+    }
+    onClickLogOut(func) {
+        this.logOut.onclick = () => { func(); };
     }
     show() {
         this.startPage.classList.remove('start-page_hide');

@@ -22,15 +22,23 @@ export default class GamePanelController {
     this.view = new GamePanelView();
     this.resourse = new GameResourseController();
     this.eventDispatcherCall = eventDispatcher.call;
-    eventDispatcher.subscribe.setUser(() => {
-      DataAdapter.getUserWords().then((userWords: IUserWord[]) => {
-        this.userWords = userWords;
-        // userWords.forEach((w) => {
-        //   if (!w.optional.success) DataAdapter.deleteWord(w.wordId);
-        // });
-        this.load();
-        // window.document.gete
-      });
+    eventDispatcher.subscribe.setUser((user) => {
+      if (user.userId) {
+        DataAdapter.getUserWords().then((userWords: IUserWord[]) => {
+          this.userWords = userWords;
+          // userWords.forEach((w) => {
+          //   if (!w.optional.success) DataAdapter.deleteWord(w.wordId);
+          // });
+          this.load();
+        });
+      } else {
+        this.userWords = undefined;
+        this.wordsResponse = undefined;
+        this.gameRows = [];
+        this.gameRowActive = undefined;
+        this.view.clearGamePanel();
+        this.resourse.clear();
+      }
     });
     eventDispatcher.subscribe.clickSound(() => {
       this.gameRowActive.soundPlay();
@@ -68,33 +76,10 @@ export default class GamePanelController {
         this.addGameRow(wordResponse, !userWord.optional.success);
       });
 
-      // const userWord = userWords[1];
-      // userWord.optional.success = true;
-      // DataAdapter.putWord(userWord.wordId, {
-      //   difficulty: userWord.difficulty,
-      //   optional: userWord.optional,
-      // });
-
       if (lastWordIsSuccess) {
         this.addGameRowAndSave(this.wordsResponse[0], true);
       }
 
-      // debugger
-      // DataAdapter.postWord(this.wordsResponse[0].id, {
-      //   difficulty: 'weak',
-      //   optional: {
-      //     page: this.page,
-      //     row: 1,
-      //     success: false,
-      //   },
-      // }).then((testRes) => {
-      //   debugger;
-      //   DataAdapter.getUserWords().then((tsest) => {
-      //     debugger;
-      //   }).catch((e) => {
-      //     debugger;
-      //   });
-      // });
       // this.resultResize();
     }).catch((error) => {
       debugger;
@@ -223,6 +208,10 @@ class GamePanelView {
 
   public getGamePanel(): HTMLElement {
     return this.resultPanel;
+  }
+
+  public clearGamePanel() {
+    this.resultPanel.innerHTML = '';
   }
 
   public getResoursePanel(): HTMLElement {

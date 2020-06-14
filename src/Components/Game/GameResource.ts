@@ -14,6 +14,10 @@ export default class GameResourseController {
     GameStorage.wordToResourse = (element: HTMLElement) => this.view.appendWordElement(element);
   }
 
+  public clear() {
+    this.view.clear();
+  }
+
   public renderWords(words: IWordGame[]) {
     shuffle(words).forEach((word: IWordGame) => this.view.addWord(word));
   }
@@ -42,6 +46,10 @@ class GameResourseView {
         this.resourseLayout.insertBefore(source, current);
       }
     };
+  }
+
+  public clear() {
+    this.resourseLayout.innerHTML = '';
   }
 
   public appendWordElement(element: HTMLElement) {

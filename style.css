@@ -142,6 +142,11 @@ input.radio-buttons_button:checked + span {
   font-size: 5rem;
   margin-top: 50px;
 }
+.start-page__logOut {
+  margin-top: 20px;
+  height: 35px;
+  font-size: 2rem;
+}
 .start-page_hide {
   width: 0;
   opacity: 0;
@@ -388,6 +393,11 @@ label.droplist-label {
 label.droplist-label .droplist {
   margin-left: 5px;
   cursor: pointer;
+}
+
+.log-out {
+  margin-right: 10px;
+  padding: 3px 10px;
 }
 
 .game__result-buttons {

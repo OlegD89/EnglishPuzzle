@@ -25,7 +25,7 @@ export default class App {
     this.layout = new LayoutController(eventDispatcher.subscribe);
     this.logIn = new LogInController(eventDispatcher, params);
     this.game = new GameController(eventDispatcher);
-    this.start = new StartController(eventDispatcher, () => this.game.show());
+    this.start = new StartController(eventDispatcher, (isShow: boolean) => this.game.show(isShow));
   }
 
   public Start() {
@@ -37,6 +37,8 @@ export default class App {
     this.game.render(layout);
 
     document.querySelector('body').appendChild(page);
+    console.log(`Реализовал не весь необходимый функционал, но сколько то баллов это стоит
+    Статистика не реализована. Реализован только один уровень.`);
   }
 }
 
