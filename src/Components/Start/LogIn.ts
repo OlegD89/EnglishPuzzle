@@ -101,8 +101,8 @@ class LogInView {
     this.registerButton = renderElement(this.logIn, 'button',
       'log-in__button log-in__registration-button', 'Registration');
 
-    this.logInEmail.value = 'test3@te.st';
-    this.logInPassword.value = 'Test999&';
+    // this.logInEmail.value = 'test3@te.st';
+    // this.logInPassword.value = 'Test999&';
   }
 
   public onSubmitRegister(func: (email: string, password: string) => void) {

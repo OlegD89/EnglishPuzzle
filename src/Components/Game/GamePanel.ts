@@ -26,18 +26,10 @@ export default class GamePanelController {
       if (user.userId) {
         DataAdapter.getUserWords().then((userWords: IUserWord[]) => {
           this.userWords = userWords;
-          // userWords.forEach((w) => {
-          //   if (!w.optional.success) DataAdapter.deleteWord(w.wordId);
-          // });
           this.load();
         });
       } else {
-        this.userWords = undefined;
-        this.wordsResponse = undefined;
-        this.gameRows = [];
-        this.gameRowActive = undefined;
-        this.view.clearGamePanel();
-        this.resourse.clear();
+        this.clear();
       }
     });
     eventDispatcher.subscribe.clickSound(() => {
@@ -57,6 +49,7 @@ export default class GamePanelController {
     this.view.onClickCheckButton(() => this.checkPossiotions());
     this.view.onClickContinueButton(() => this.success());
     this.view.onClickReverseColorTextButton(() => this.gameRows.forEach((g) => g.reverseColorText()));
+    this.view.onClickRemoveButton(() => this.removeUserWords());
     this.view.onPanelResize(() => this.resize());
     this.resourse.render(this.view.getResoursePanel());
   }
@@ -69,7 +62,7 @@ export default class GamePanelController {
 
       const userWords = this.getUserPageWords();
 
-      let lastWordIsSuccess = false;
+      let lastWordIsSuccess = true;
       userWords.forEach((userWord: IUserWord) => {
         const wordResponse = arrayPopByKey(this.wordsResponse, 'id', userWord.wordId);
         lastWordIsSuccess = userWord.optional.success;
@@ -152,18 +145,20 @@ export default class GamePanelController {
       // TODO Скрыть границы и показать информацию по картине
       this.view.showResult();
       this.gameRows.forEach((gr) => gr.hideBorders());
+      this.resourse.renderWords([{
+        text: paintings[this.page].description,
+        width: 1,
+        index: 0,
+        element: undefined,
+      }]);
       // this.view.showInfo();
     }
   }
 
 
   private resize() {
-    // const painting = paintings[this.page];
-    // const resultPanelHeight = (painting.height / painting.width) * this.view.getWidthtGamePanel();
-    // this.rowHeight = resultPanelHeight / (rowCount + 1);
     this.calcRowHeigth();
     this.gameRows.forEach((g) => g.changeHeight(this.rowHeight));
-    // Изменить размер всего окна результатов и ресурсов
   }
 
   private calcRowHeigth() {
@@ -177,6 +172,24 @@ export default class GamePanelController {
       // eslint-disable-next-line no-nested-ternary
       .sort((a, b) => (a.optional.row > b.optional.row ? 1 : b.optional.row > a.optional.row ? -1 : 0));
   }
+
+  private clear() {
+    this.userWords = [];
+    this.wordsResponse = undefined;
+    this.gameRows = [];
+    this.gameRowActive = undefined;
+    this.view.clearGamePanel();
+    this.resourse.clear();
+  }
+
+  private removeUserWords() {
+    const userWords = this.getUserPageWords();
+    Promise.all(userWords.map((w) => DataAdapter.deleteWord(w.wordId)))
+      .then(() => {
+        this.clear();
+        this.load();
+      });
+  }
 }
 
 class GamePanelView {
@@ -188,6 +201,7 @@ class GamePanelView {
   private сontinueButton: HTMLButtonElement;
   private reverseColorTextButton: HTMLButtonElement;
   private resultButton: HTMLButtonElement;
+  private removeButton: HTMLButtonElement;
 
   public render(layout: Node) {
     this.translation = renderElement(layout, 'span', 'game__result-translate');
@@ -204,6 +218,9 @@ class GamePanelView {
       'game__result-button result-button__result game__result-button_hide', 'Result');
     this.reverseColorTextButton = renderElement(resultButtons, 'button',
       'game__result-button result-button__helper', 'Reverse color text');
+    this.removeButton = renderElement(resultButtons, 'button',
+      'game__result-button result-button__helper', 'Remove stat');
+    this.removeButton.title = 'To remove all the guess the words for that level';
   }
 
   public getGamePanel(): HTMLElement {
@@ -248,16 +265,22 @@ class GamePanelView {
 
   public showResult() {
     this.showContinue();
+    this.reverseColorTextButton.classList.add('game__result-button_hide');
     this.resultButton.classList.remove('game__result-button_hide');
   }
 
   public hideResult() {
     this.hideContinue();
+    this.reverseColorTextButton.classList.remove('game__result-button_hide');
     this.resultButton.classList.add('game__result-button_hide');
   }
 
   public onClickReverseColorTextButton(func: () => void) {
     this.reverseColorTextButton.onclick = func;
+  }
+
+  public onClickRemoveButton(func: () => void) {
+    this.removeButton.onclick = func;
   }
 
   public getWidthtGamePanel(): number {

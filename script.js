@@ -506,12 +506,7 @@ class GamePanelController {
                 });
             }
             else {
-                this.userWords = undefined;
-                this.wordsResponse = undefined;
-                this.gameRows = [];
-                this.gameRowActive = undefined;
-                this.view.clearGamePanel();
-                this.resourse.clear();
+                this.clear();
             }
         });
         eventDispatcher.subscribe.clickSound(() => {
@@ -530,6 +525,7 @@ class GamePanelController {
         this.view.onClickCheckButton(() => this.checkPossiotions());
         this.view.onClickContinueButton(() => this.success());
         this.view.onClickReverseColorTextButton(() => this.gameRows.forEach((g) => g.reverseColorText()));
+        this.view.onClickRemoveButton(() => this.removeUserWords());
         this.view.onPanelResize(() => this.resize());
         this.resourse.render(this.view.getResoursePanel());
     }
@@ -539,7 +535,7 @@ class GamePanelController {
             this.calcRowHeigth();
             this.wordsResponse = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["shuffle"])(wordsResponse.filter((o) => o.textExample.split(' ').length < 10));
             const userWords = this.getUserPageWords();
-            let lastWordIsSuccess = false;
+            let lastWordIsSuccess = true;
             userWords.forEach((userWord) => {
                 const wordResponse = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["arrayPopByKey"])(this.wordsResponse, 'id', userWord.wordId);
                 lastWordIsSuccess = userWord.optional.success;
@@ -614,6 +610,12 @@ class GamePanelController {
         else {
             this.view.showResult();
             this.gameRows.forEach((gr) => gr.hideBorders());
+            this.resourse.renderWords([{
+                    text: _Constants_Paintings__WEBPACK_IMPORTED_MODULE_5__["default"][this.page].description,
+                    width: 1,
+                    index: 0,
+                    element: undefined,
+                }]);
         }
     }
     resize() {
@@ -629,6 +631,22 @@ class GamePanelController {
         return this.userWords.filter((userWord) => userWord.optional.page === this.page)
             .sort((a, b) => (a.optional.row > b.optional.row ? 1 : b.optional.row > a.optional.row ? -1 : 0));
     }
+    clear() {
+        this.userWords = [];
+        this.wordsResponse = undefined;
+        this.gameRows = [];
+        this.gameRowActive = undefined;
+        this.view.clearGamePanel();
+        this.resourse.clear();
+    }
+    removeUserWords() {
+        const userWords = this.getUserPageWords();
+        Promise.all(userWords.map((w) => _Utils_DataAdapter__WEBPACK_IMPORTED_MODULE_1__["default"].deleteWord(w.wordId)))
+            .then(() => {
+            this.clear();
+            this.load();
+        });
+    }
 }
 class GamePanelView {
     render(layout) {
@@ -641,6 +659,8 @@ class GamePanelView {
         this.checkButton = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultButtons, 'button', 'game__result-button result-button__check', 'Check');
         this.resultButton = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultButtons, 'button', 'game__result-button result-button__result game__result-button_hide', 'Result');
         this.reverseColorTextButton = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultButtons, 'button', 'game__result-button result-button__helper', 'Reverse color text');
+        this.removeButton = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(resultButtons, 'button', 'game__result-button result-button__helper', 'Remove stat');
+        this.removeButton.title = 'To remove all the guess the words for that level';
     }
     getGamePanel() {
         return this.resultPanel;
@@ -675,14 +695,19 @@ class GamePanelView {
     }
     showResult() {
         this.showContinue();
+        this.reverseColorTextButton.classList.add('game__result-button_hide');
         this.resultButton.classList.remove('game__result-button_hide');
     }
     hideResult() {
         this.hideContinue();
+        this.reverseColorTextButton.classList.remove('game__result-button_hide');
         this.resultButton.classList.add('game__result-button_hide');
     }
     onClickReverseColorTextButton(func) {
         this.reverseColorTextButton.onclick = func;
+    }
+    onClickRemoveButton(func) {
+        this.removeButton.onclick = func;
     }
     getWidthtGamePanel() {
         return this.resultPanel.offsetWidth;
@@ -1231,8 +1256,6 @@ class LogInView {
         const logInButton = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(this.logIn, 'button', 'log-in__button', 'Enter');
         logInButton.type = 'submit';
         this.registerButton = Object(_Utils_Utils__WEBPACK_IMPORTED_MODULE_0__["renderElement"])(this.logIn, 'button', 'log-in__button log-in__registration-button', 'Registration');
-        this.logInEmail.value = 'test3@te.st';
-        this.logInPassword.value = 'Test999&';
     }
     onSubmitRegister(func) {
         this.logIn.onsubmit = (event) => {
